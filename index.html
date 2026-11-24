@@ -1,0 +1,2657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StrungCharms</title>
+<meta name="description" content="Make 3D-printable letter beads for names, keyrings and bag charms in your browser. Pick a bead shape, font and colours, then export a print-ready 3MF for Bambu Studio, OrcaSlicer or PrusaSlicer.">
+<meta name="theme-color" content="#1e2026">
+<meta property="og:type" content="website">
+<meta property="og:title" content="StrungCharms: 3D-printable letter beads">
+<meta property="og:description" content="Type a name, pick a bead shape and colours, and export a print-ready 3MF. Runs in the page: nothing to install, nothing uploaded.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="StrungCharms: 3D-printable letter beads">
+<meta name="twitter:description" content="Type a name, pick a bead shape and colours, and export a print-ready 3MF. Runs in the page: nothing to install, nothing uploaded.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #15161a; --panel: #1e2026; --panel2: #262931; --line: #343844;
+    --text: #e8e9ee; --muted: #9aa0ad; --accent: #1f9e8f; --accent2: #2cc2b0; --warn: #f0b35c; --err: #ff8f8f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: grid; grid-template-rows: auto auto 1fr; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
+  #top { background: var(--panel); border-bottom: 1px solid var(--line); padding: 8px 14px 0; }
+  #top .bar { display: flex; align-items: flex-start; gap: 12px; }
+  #top h1, #top .namehint, #exp3mfTop { align-self: center; }
+  #top h1 { margin: 0; white-space: nowrap; }
+  #top #name { flex: 0 1 720px; min-width: 260px; }
+  #quickSets { display: flex; gap: 4px; align-self: center; white-space: nowrap; }
+  #top .namehint { flex: 1 1 0; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 1700px) { #top .namehint { visibility: hidden; } } /* too narrow to read: the same words are in the name box tooltip and the help */
+  @media (min-width: 801px) and (max-width: 1300px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #name { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
+  #top .undo { margin-left: auto; display: flex; gap: 4px; align-self: center; }
+  #top .undo button { padding: 6px 10px; font-size: 16px; line-height: 1; }
+  button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+  #copyLink, #shot { white-space: nowrap; align-self: center; }
+  :focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+  #tabs button:focus-visible { outline-offset: -2px; }
+  #shotDlg, #helpDlg { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 14px; max-width: min(1200px, 94vw); }
+  #shotDlg::backdrop, #helpDlg::backdrop { background: #000a; }
+  #shotDlg img { display: block; max-width: 100%; max-height: 72vh; border-radius: 6px; }
+  #shotDlg .btns, #helpDlg .btns { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 12px; }
+  #helpDlg { width: min(520px, 94vw); max-height: 88vh; overflow-y: auto; scrollbar-color: var(--line) transparent; }
+  #helpDlg h2 { font-size: 15px; margin: 0 0 6px; }
+  #helpDlg h3 { font-size: 12px; margin: 12px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  #helpDlg dl { display: grid; grid-template-columns: 12.5em 1fr; gap: 5px 12px; margin: 0; align-items: baseline; }
+  #helpDlg dd { margin: 0; color: var(--muted); }
+  #helpDlg ol { margin: 0; padding-left: 20px; color: var(--muted); }
+  kbd { font: inherit; font-size: 12px; background: #14151a; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+  #donate { white-space: nowrap; align-self: center; padding: 6px 12px; border-radius: 6px; background: #ffc439; color: #111; font-weight: 600; font-size: 13px; text-decoration: none; }
+  #donate:hover { background: #f2b51f; }
+  #exp3mfTop { white-space: nowrap; }
+  #tabs { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
+  #tabs [role=tablist] { display: flex; gap: 2px; }
+  #tabs button { background: transparent; color: var(--muted); border-radius: 7px 7px 0 0; padding: 7px 14px; font-weight: 600; white-space: nowrap; border-bottom: 2px solid transparent; }
+  #tabs button:hover { color: var(--text); background: #ffffff0a; }
+  #tabs button.on { color: var(--accent2); border-bottom-color: var(--accent2); background: var(--panel2); }
+  #tabs .hide { margin-left: auto; padding: 7px 10px; }
+  #app.collapsed #tabs .hide { visibility: hidden; }
+  #panel { background: var(--panel2); border-bottom: 1px solid var(--line); max-height: 42vh; overflow-y: auto; }
+  #app.collapsed #panel { display: none; }
+  .pane .sec { padding: 10px 16px 14px; columns: 380px 3; column-gap: 32px; max-width: 1500px; }
+  .pane .sec > *, .pane .sec .row { break-inside: avoid; }
+  .pane .sec .row { max-width: 560px; }
+  #top { grid-row: 1; } #panel { grid-row: 2; }
+  #view { grid-row: 3; position: relative; min-width: 0; min-height: 0;
+    background: radial-gradient(ellipse at 50% 40%, #3b4358 0%, #262b38 55%, #1a1d26 100%); }
+  #view canvas { display: block; width: 100%; height: 100%; }
+  h1 { font-size: 16px; margin: 2px 0 10px; }
+  .row { display: grid; grid-template-columns: 132px 1fr 62px 22px; gap: 8px; align-items: center; margin: 6px 0; }
+  .row.wide { grid-template-columns: 132px 1fr; }
+  .row label { color: var(--muted); }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; background: #14151a; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; font: inherit; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=file] { width: 100%; min-width: 0; font: inherit; color: var(--muted); }
+  input[type=color] { width: 100%; height: 28px; border: 1px solid var(--line); border-radius: 6px; background: #14151a; padding: 2px; }
+  #name { font-size: 16px; padding: 8px 10px; resize: none; line-height: 1.35; overflow-y: auto; display: block; }
+  button { background: var(--accent); color: #fff; border: 0; border-radius: 7px; padding: 8px 12px; font: inherit; font-weight: 600; cursor: pointer; }
+  button:hover { background: var(--accent2); }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); font-weight: 500; }
+  button.ghost:hover { border-color: var(--accent); }
+  button.small { padding: 4px 8px; font-size: 12px; }
+  .rst { visibility: hidden; background: transparent; border: 0; color: var(--muted); padding: 0; width: 22px; height: 22px; font-size: 15px; line-height: 1; border-radius: 5px; }
+  .rst.on { visibility: visible; }
+  .rst:hover { background: #ffffff14; color: var(--accent2); }
+  .swatches { display: flex; flex-wrap: wrap; gap: 4px; margin: -2px 0 10px 140px; }
+  .swatches button { width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 1px solid #0006; box-shadow: inset 0 0 0 1px #fff3; cursor: pointer; }
+  .swatches button:hover { transform: scale(1.2); }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  button.thumb { width: 48px; height: 48px; min-width: 48px; padding: 4px; touch-action: none; }
+  .thumb[data-ins] { cursor: grab; }
+  .thumb svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+  #palGhost { position: fixed; z-index: 50; width: 56px; height: 56px; margin: -28px 0 0 -28px; pointer-events: none; opacity: 0.85; }
+  #palGhost svg { width: 100%; height: 100%; }
+  .bpCols { display: flex; gap: 6px; align-items: center; }
+  .hint { color: var(--muted); font-size: 12px; margin: 4px 0; }
+  .check { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+  #status { position: absolute; left: 12px; bottom: 10px; color: var(--muted); font-size: 12px; background: #0009; padding: 4px 8px; border-radius: 6px; }
+  #status.err { color: var(--err); }
+  #dims { position: absolute; left: 12px; top: 10px; background: #0009; padding: 6px 10px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+  #warn { position: absolute; right: 12px; top: 10px; max-width: 380px; color: var(--warn); background: #000a; padding: 6px 10px; border-radius: 6px; display: none; white-space: pre-line; }
+  #empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--muted); font-size: 18px; pointer-events: none; }
+  #empty[hidden] { display: none; }
+  #empty small { font-size: 13px; margin-top: 6px; }
+  #done { position: absolute; left: 12px; bottom: 44px; max-width: 400px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 30px 10px 12px; box-shadow: 0 8px 30px #0008; z-index: 2; }
+  #done[hidden], #firstHint[hidden] { display: none; }
+  #done b { display: block; margin-bottom: 4px; overflow-wrap: anywhere; }
+  #done ol { margin: 4px 0 0; padding-left: 18px; color: var(--muted); }
+  #done .x { position: absolute; right: 6px; top: 6px; }
+  #done i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #fff5; margin-right: 3px; vertical-align: -1px; }
+  #firstHint { display: flex; gap: 10px; align-items: center; margin-top: 8px; padding: 6px 10px; background: #1f9e8f26; border: 1px solid var(--accent); border-radius: 7px; }
+  #firstHint span { flex: 1; }
+  details.adv { margin: 6px 0; }
+  details.adv > summary { cursor: pointer; color: var(--muted); font-weight: 600; padding: 4px 0; width: max-content; max-width: 100%; }
+  details.adv > summary:hover { color: var(--text); }
+  details.adv.chg > summary::after { content: ' · changed'; color: var(--accent2); font-weight: 500; }
+  .pane ol.hint { padding-left: 18px; }
+  #viewbtns { position: absolute; right: 12px; bottom: 10px; display: flex; gap: 6px; }
+  #viewbtns button { padding: 5px 9px; font-size: 12px; }
+  #modebtns { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: flex; background: #000a; border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 3px; }
+  #modebtns button { background: transparent; color: var(--muted); padding: 6px 14px; font-weight: 600; border-radius: 6px; }
+  #modebtns button.on { background: var(--accent); color: #fff; }
+  #beadPanel { position: absolute; left: 50%; bottom: 48px; transform: translateX(-50%); width: min(380px, calc(100% - 32px));
+    background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 30px #0008; }
+  #beadPanel[hidden] { display: none; }
+  #beadPanel .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  #beadPanel .row.wide { grid-template-columns: 100px 1fr; }
+  #view canvas { touch-action: none; }
+  @media (max-width: 800px) { #modebtns { top: auto; bottom: 44px; } #warn { top: 46px; left: 12px; max-width: none; } #done { right: 12px; bottom: 92px; max-width: none; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } .swatches button:hover { transform: none; } }
+  @media (max-width: 800px) {
+    #top { padding: 8px 10px 0; }
+    #top .bar { flex-wrap: wrap; gap: 8px; }
+    #top #name { flex: 1 1 100%; order: 3; }
+    #top .namehint { display: none; }
+    #quickSets { order: 4; }
+    #panel { max-height: 50vh; }
+    .pane .sec { padding: 8px 10px 12px; }
+    .row { grid-template-columns: 110px 1fr 56px 22px; }
+    .row.wide { grid-template-columns: 110px 1fr; }
+  }
+</style>
+<script>
+// a script that fails to load (offline, blocked CDN) would leave "Loading…" forever: say what to do instead
+addEventListener('error', ev => {
+  if (ev.target?.tagName !== 'SCRIPT') return;
+  const show = () => { const s = document.getElementById('status'); if (s) { s.textContent = 'Part of StrungCharms could not load. Check your internet connection, then reload the page.'; s.classList.add('err'); } };
+  show(); addEventListener('DOMContentLoaded', show);
+}, true);
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="bambu-profiles.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="bar">
+      <h1>StrungCharms</h1>
+      <textarea id="name" rows="1" maxlength="2000" spellcheck="false" aria-label="Name" title="One bead per letter. Enter starts the next cord. Spacer beads go in brackets, like [heart]." placeholder="Type a name… (Enter = next cord)">[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]</textarea>
+      <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with the 16 most used letters: A E I L O M S H R C Y N T D G B">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button></div>
+      <div class="hint namehint">One bead per letter, one cord per line. Spacer beads in brackets, e.g. <code>MIA [heart]</code> or <code>[star] SAM</code>.</div>
+      <div class="undo">
+        <button id="undoBtn" class="ghost" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button id="redoBtn" class="ghost" title="Redo (Ctrl+Shift+Z or Ctrl+Y)" aria-label="Redo" disabled>↷</button>
+      </div>
+      <a id="donate" href="https://www.paypal.com/donate/?hosted_button_id=PZVZSNGSJVZF8" target="_blank" rel="noopener" title="Support StrungCharms via PayPal">♥ Donate</a>
+      <button id="shot" class="ghost" title="Take a picture of the preview to copy or download">Screenshot</button>
+      <button id="copyLink" class="ghost" title="Copy a link that opens this name with these settings">Copy link</button>
+      <button id="exp3mfTop" title="Download the print file (3MF) to open in your slicer. Pick your printer under Printer &amp; export first.">Export 3MF</button>
+    </div>
+    <div id="firstHint" class="hint" role="note" hidden><span><b>Start here:</b> type a name in the box above. Each letter becomes a bead; the words in brackets, like <code>[puck]</code>, are spacer beads you can delete. Then go through the tabs from left to right and finish with <b>Export 3MF</b>.</span><button class="ghost small" id="firstHintOk">Got it</button></div>
+    <nav id="tabs" aria-label="Settings"><div role="tablist" aria-label="Settings sections"><button data-tab="bead" role="tab">Bead</button><button data-tab="hole" role="tab">Cord hole</button><button data-tab="letter" role="tab">Letter</button><button data-tab="extras" role="tab">Spacer beads</button><button data-tab="colours" role="tab">Colours</button><button data-tab="export" role="tab">Printer &amp; export</button><button data-tab="settings" role="tab">Settings</button></div><button id="tabHide" class="hide" title="Hide settings (click a tab to reopen)" aria-label="Hide settings">▴</button></nav>
+  </header>
+  <div id="panel">
+    <section class="pane" data-tab="bead" role="tabpanel" hidden>
+      <div class="sec">
+        <div class="row wide"><label for="shape">Shape</label>
+          <select id="shape">
+            <option value="circle">Round</option><option value="square">Rounded square</option><option value="cube">Cube (rounded)</option>
+            <option value="hexagon">Hexagon</option><option value="octagon">Octagon</option><option value="heart">Heart</option>
+          </select></div>
+        <div class="row wide"><label for="sizePreset" title="Sets Bead size to a common size">Quick size</label>
+          <select id="sizePreset"><option value="custom">Custom</option><option value="35">35 mm</option><option value="45">45 mm</option><option value="50">50 mm</option><option value="55">55 mm</option><option value="75">75 mm</option><option value="100">100 mm</option></select></div>
+        <div id="beadCtl"></div>
+        <div class="row wide" id="edgeStyleRow"><label for="edgeStyle" title="How the rim of the bead is finished">Edge style</label>
+          <select id="edgeStyle"><option value="printable" title="A 45° chamfer that runs into a radius">Soft bevel (prints cleanly)</option><option value="round">Rounded</option><option value="chamfer" title="A flat 45° chamfer">Flat bevel</option><option value="none">Sharp</option></select></div>
+        <div class="btns"><button class="ghost small" id="autoThick" title="Sets Thickness to the thinnest that still leaves solid plastic around the cord hole and the letter">Use the thinnest safe thickness</button></div>
+        <div class="hint" id="thickInfo"></div>
+        <details class="adv" id="advBead"><summary>Advanced</summary>
+          <div class="row wide"><label for="bottomEdge" title="The edge that sits on the printer bed. A soft bevel (45° chamfer into a radius) needs no supports.">Edge on the bed side</label>
+            <select id="bottomEdge"><option value="printable">Soft bevel (prints cleanly)</option><option value="same">Same as Edge style</option></select></div>
+          <div id="edgeCtl"></div>
+        </details>
+      </div>
+    </section>
+    <section class="pane" data-tab="hole" role="tabpanel" hidden>
+      <div class="sec">
+        <div class="hint">Pick your cord and the hole is sized to fit, with a little room. Cord not listed? Set Hole diameter about 1 mm wider than the cord.</div>
+        <div class="row wide"><label for="cord">Cord / string</label>
+          <select id="cord">
+            <option value="custom">Custom hole size</option>
+            <option value="elastic">Elastic / stretch cord 1 mm</option>
+            <option value="ballchain">Ball chain 2.4 mm</option>
+            <option value="leather">Leather / wax cord 3 mm</option>
+            <option value="shoelace">Shoelace</option>
+            <option value="paracord">Paracord 550 (4 mm)</option>
+            <option value="paracord2">Double paracord 550 (2 × 4 mm, slot)</option>
+            <option value="cord6">Thick cord 5–6 mm</option>
+            <option value="rope8">Rope 8 mm</option>
+          </select></div>
+        <div class="row wide"><label for="holeAxis">Direction</label>
+          <select id="holeAxis">
+            <option value="x">Side to side: name reads across</option>
+            <option value="y">Top to bottom: name hangs vertically</option>
+            <option value="none">No hole</option>
+          </select></div>
+        <div id="holeCtl"></div>
+        <details class="adv" id="advHole"><summary>Advanced</summary>
+          <div class="row wide"><label for="holeShape">Hole shape</label>
+            <select id="holeShape"><option value="round">Round</option><option value="slot">Slot: two cords side by side</option></select></div>
+          <div class="row wide"><span></span><label class="check" title="A teardrop hole: the top of the hole comes to a point, so the printer never has to print across thin air. Leave it on unless you print with supports."><input type="checkbox" id="teardrop" checked> Pointed top on the hole, so it prints without supports</label></div>
+        </details>
+      </div>
+    </section>
+    <section class="pane" data-tab="letter" role="tabpanel" hidden>
+      <div class="sec">
+        <div class="row wide"><label for="font">Font</label><select id="font"></select></div>
+        <div class="row wide"><label for="fontFile" title="Use a font file from your computer (.ttf, .otf or .woff). It is not kept between visits.">Your own font</label><input id="fontFile" type="file" accept=".ttf,.otf,.woff"></div>
+        <div class="row wide"><label for="letterMode">Style</label>
+          <select id="letterMode">
+            <option value="inlay">Inlay: flush with the face, second colour</option>
+            <option value="raised">Raised: stands up from the face, second colour</option>
+            <option value="engrave">Engraved: cut into the face, one colour</option>
+          </select></div>
+        <div class="hint">Inlay and Raised print the letter in a second filament, so they suit a multi-colour printer (AMS or similar). One filament only? Choose Engraved.</div>
+        <div id="letterCtl"></div>
+        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="upper" checked> UPPERCASE letters</label></div>
+        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="backLetter"> Letter on the back too (inlay / engraved)</label></div>
+        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="blankSpace"> Spaces become blank beads</label></div>
+        <details class="adv" id="advLetter"><summary>Advanced</summary></details>
+      </div>
+    </section>
+    <section class="pane" data-tab="extras" role="tabpanel" hidden>
+      <div class="sec">
+        <div class="btns">
+          <button class="ghost small" data-ins="[puck]">Puck</button>
+          <button class="ghost small" data-ins="[barrel]">Barrel</button>
+          <button class="ghost small" data-ins="[heart-bead]">Heart</button>
+          <button class="ghost small" data-ins="[bow]">Bow</button>
+          <button class="ghost small" data-ins="[cube]">Cube</button>
+          <button class="ghost small" data-ins="[star-bead]">Star</button>
+          <button class="ghost small" data-ins="[flower-bead]">Flower</button>
+          <button class="ghost small" data-ins="[cloud-bead]">Cloud</button>
+          <button class="ghost small" data-ins="[butterfly-bead]">Butterfly</button>
+          <button class="ghost small" data-ins="[gem-bead]">Gem</button>
+          <button class="ghost small" data-ins="[paw-bead]">Paw</button>
+          <button class="ghost small" data-ins="[crown-bead]">Crown</button>
+          <button class="ghost small" data-ins="[football-bead]">Football</button>
+          <button class="ghost small" data-ins="[basketball-bead]">Basketball</button>
+          <button class="ghost small" data-ins="[soccer-bead]">Soccer ball</button>
+        </div>
+        <div class="hint" title="You can also type them: [puck], [barrel], [heart-bead] (or ♥), [bow], [cube], [star-bead] (or ★), [flower-bead], [soccer-bead] and so on.">Click a bead to add it where the cursor is in the name box, or drag it onto the cord in the preview. It shows up in the name as a word in brackets, like <code>[puck]</code>. A barrel prints standing up, with the cord through its length.</div>
+        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="spacerPuck"> Puck spacer between every bead</label></div>
+        <div class="row wide"><label for="decorArt" title="The lines on shapes like the balls, paw and gem. They print in the letter colour, in the letter style.">Markings</label>
+          <select id="decorArt"><option value="outline">Outline</option><option value="solid">Solid</option><option value="none">None (plain shapes)</option></select></div>
+        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="bowRotate" checked> Bows across the cord (rotated 90°)</label></div>
+        <details class="adv" id="advExtras"><summary>Advanced: spacer bead sizes</summary><div id="extraCtl"></div></details>
+      </div>
+    </section>
+    <section class="pane" data-tab="colours" role="tabpanel" hidden>
+      <div class="sec">
+        <div><div class="row"><label for="beadColor">Bead</label><input type="color" id="beadColor" value="#f4f1ea"><input type="number" id="beadExt" min="1" max="16" value="1" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Bead filament slot"></div>
+        <div class="swatches" data-for="beadColor"></div></div>
+        <div><div class="row"><label for="letterColor">Letter</label><input type="color" id="letterColor" value="#1c1c1f"><input type="number" id="letterExt" min="1" max="16" value="2" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Letter filament slot"></div>
+        <div class="swatches" data-for="letterColor"></div></div>
+        <div><div class="row"><label for="accentColor">Spacer beads</label><input type="color" id="accentColor" value="#d64545"><input type="number" id="accentExt" min="1" max="16" value="3" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Spacer beads filament slot"></div>
+        <div class="swatches" data-for="accentColor"></div></div>
+        <div class="hint">Click a dot to set a colour. The number beside each colour is its filament slot: load that colour in that slot of your printer (AMS slot 1, 2, 3…). Click a bead in the preview to give that one bead its own colours; a new colour takes the next free slot.</div>
+        <div class="hint">One filament only? Choose Engraved under Letter and set every slot to 1. Beads of another colour then go on their own plate, so you can change filament between plates.</div>
+      </div>
+    </section>
+    <section class="pane" data-tab="export" role="tabpanel" hidden>
+      <div class="sec">
+        <div class="row wide"><label for="plate" title="Sets the size of the build plate the beads are laid out on">Printer</label><select id="plate"></select></div>
+        <div class="row" id="customPlate" style="display:none"><label for="plateW">Plate W × D (mm)</label>
+          <input type="number" id="plateW" min="50" max="1000" step="1" value="200" aria-label="Plate width (mm)"><input type="number" id="plateD" min="50" max="1000" step="1" value="200" aria-label="Plate depth (mm)"></div>
+        <div class="row wide"><label for="fmt" title="The program you open the file in to prepare the print. Each one reads colours from a 3MF in its own way.">Slicer</label>
+          <select id="fmt"><option value="bambu">Bambu Studio / OrcaSlicer</option><option value="prusa">PrusaSlicer / SuperSlicer</option></select></div>
+        <div class="row wide bblRow"><label for="bblPrinter" title="Which Bambu printer the file is set up for">Bambu model</label>
+          <select id="bblPrinter">
+            <option value="auto">Same as Printer above</option>
+            <option value="a1mini">A1 mini</option><option value="a1">A1</option><option value="p1s">P1S</option>
+            <option value="x1c">X1 Carbon</option><option value="p2s">P2S</option><option value="h2s">H2S</option>
+            <option value="none">None (beads only, no printer setup)</option>
+          </select></div>
+        <div class="row wide bblRow"><label for="bedType" title="The plate fitted in your printer. Bambu Studio checks it against the printer before it prints.">Plate surface</label>
+          <select id="bedType">
+            <option value="Textured PEI Plate">Textured PEI</option><option value="High Temp Plate">Smooth PEI / High Temp</option>
+            <option value="Supertack Plate">Cool Plate SuperTack</option><option value="Cool Plate">Cool Plate</option>
+            <option value="Engineering Plate">Engineering Plate</option>
+          </select></div>
+        <div class="hint" id="bblInfo"></div>
+        <div id="plateCtl"></div>
+        <div class="btns"><button class="ghost" id="fillPlate" title="Sets Number of sets to as many copies of the name as fit on one plate">Fill the plate with sets</button></div>
+        <div class="hint" id="plateInfo"></div>
+        <details class="adv" id="advExport"><summary>Advanced</summary>
+          <div class="row wide"><label for="colorMode" title="Pre-painted: each bead is one solid with the letter already painted in the letter filament, ready to slice. Separate parts: bead and letter are two parts of one object, each with its own filament.">Colours in the file</label>
+            <select id="colorMode"><option value="paint">Pre-painted: one piece per bead</option><option value="parts">Separate part per colour</option></select></div>
+          <div class="row wide"><span></span><label class="check" title="Spacer beads in another colour get a plate of their own, so each plate needs fewer filament changes"><input type="checkbox" id="splitPlates" checked> Spacer beads on their own plate when their colour differs from the letter beads</label></div>
+          <div class="row wide"><span></span><label class="check" title="Turns every bead over so the letter face prints on the bed and comes out smooth"><input type="checkbox" id="faceDown"> Print face down: letter face on the bed (not for raised letters)</label></div>
+          <div class="row wide bblRow"><span></span><label class="check" title="The prime tower is a small block a multi-colour printer prints beside the beads to clean the nozzle after each colour change"><input type="checkbox" id="primeTower" checked> Leave room for the prime tower on multi-colour plates</label></div>
+        </details>
+        <div class="btns">
+          <button id="exp3mf" title="Download the print file (3MF) to open in your slicer">Export 3MF</button>
+          <button class="ghost" id="expStl" title="For slicers that cannot open the 3MF: one STL file per colour, in a zip">Export STLs (zip)</button>
+        </div>
+        <ol class="hint"><li>Pick your printer and slicer above, then press Export 3MF.</li><li>Open the downloaded file in your slicer.</li><li>Load the filament colours in the slots shown under Colours, then slice and print.</li></ol>
+        <div class="hint">The file always holds the build plate, whichever preview is showing: beads in name order, left to right, top to bottom.</div>
+      </div>
+    </section>
+    <section class="pane" data-tab="settings" role="tabpanel" hidden>
+      <div class="sec">
+        <div id="qualCtl"></div>
+        <div class="btns">
+          <button class="ghost" id="saveCfg">Save settings file</button>
+          <button class="ghost" id="loadCfgBtn">Load settings file</button>
+          <button class="ghost" id="resetCfg" title="Back to the example name and the original settings. Undo brings your design back.">Reset everything</button>
+          <input type="file" id="loadCfg" accept=".json" hidden>
+        </div>
+        <div class="hint">Your design is remembered in this browser, so it is still here after a reload. Save a settings file to keep several designs, or to move one to another computer.</div>
+      </div>
+    </section>
+  </div>
+
+  <main id="view">
+    <div id="dims"></div>
+    <div id="warn" role="status" aria-live="polite"></div>
+    <div id="status" role="status" aria-live="polite">Loading…</div>
+    <div id="empty" hidden>Type a name in the box above to see your beads.<br><small>One bead per letter, one cord per line.</small></div>
+    <div id="done" role="status" aria-live="polite" hidden><button class="ghost small x" id="doneClose" title="Close" aria-label="Close this note">×</button><b id="doneTitle"></b><div id="doneFil"></div><ol id="doneSteps"></ol></div>
+    <div id="modebtns" role="group" aria-label="Preview">
+      <button data-mode="strung" title="Preview the beads threaded on the cord">On cord</button>
+      <button data-mode="plate" title="Preview the build plate exactly as it will be exported">Build plate</button>
+    </div>
+    <div id="beadPanel" role="group" aria-labelledby="bpTitle" hidden>
+      <div class="head"><b id="bpTitle">Bead</b><button class="ghost small" id="bpClose" title="Close (Esc)" aria-label="Close bead editor">×</button></div>
+      <div class="row wide"><label for="bpText" title="A letter, or an spacer bead in brackets like [puck]">Letter or [bead]</label><input id="bpText" type="text" maxlength="40"></div>
+      <div class="row wide"><label for="bpBody">Colour</label><span class="bpCols">
+        <input type="color" id="bpBody" title="Bead colour (this bead only)"><input type="color" id="bpLetter" title="Letter / marking colour (this bead only)" aria-label="Letter / marking colour (this bead only)">
+        <button class="ghost small" id="bpColReset" title="Back to the colours from the Colours tab">Reset</button></span></div>
+      <div class="hint" id="bpColInfo"></div>
+      <div class="btns">
+        <button class="ghost small" data-bp="[puck]">Puck</button>
+        <button class="ghost small" data-bp="[barrel]">Barrel</button>
+        <button class="ghost small" data-bp="[heart-bead]">Heart</button>
+        <button class="ghost small" data-bp="[bow]">Bow</button>
+        <button class="ghost small" data-bp="[cube]">Cube</button>
+        <button class="ghost small" data-bp="[star-bead]">Star</button>
+        <button class="ghost small" data-bp="[flower-bead]">Flower</button>
+        <button class="ghost small" data-bp="[cloud-bead]">Cloud</button>
+        <button class="ghost small" data-bp="[butterfly-bead]">Butterfly</button>
+        <button class="ghost small" data-bp="[gem-bead]">Gem</button>
+        <button class="ghost small" data-bp="[paw-bead]">Paw</button>
+        <button class="ghost small" data-bp="[crown-bead]">Crown</button>
+        <button class="ghost small" data-bp="[football-bead]">Football</button>
+        <button class="ghost small" data-bp="[basketball-bead]">Basketball</button>
+        <button class="ghost small" data-bp="[soccer-bead]">Soccer ball</button>
+        <button class="ghost small" data-bp="[blank]">Blank</button>
+      </div>
+      <div class="row wide"><label for="bpIcon">Icon</label><select id="bpIcon"><option value="">Choose icon…</option></select></div>
+      <div class="btns">
+        <button class="ghost small" id="bpLeft" title="Move towards the start of the cord (←)">◀ Move</button>
+        <button class="ghost small" id="bpRight" title="Move towards the end of the cord (→)">Move ▶</button>
+        <button class="ghost small" id="bpDup">Duplicate</button>
+        <button class="ghost small" id="bpDel" title="Delete this bead (Del)">Delete</button>
+      </div>
+      <div class="hint" id="bpHint">Drag beads in the preview to reorder them.</div>
+    </div>
+    <div id="viewbtns">
+      <button class="ghost" data-v="fit" title="Fit to the window (0). Zoom: mouse wheel or + / −">Fit</button>
+      <button class="ghost" data-v="persp" title="3D view of the build plate">3D</button>
+      <button class="ghost" data-v="top" title="Look straight down on the build plate">Top</button>
+      <button class="ghost" data-v="front" title="Look at the build plate from the front">Front</button>
+      <button class="ghost" id="helpBtn" title="Help: how it works, keyboard shortcuts and mouse controls (?)" aria-label="Help: how it works, keyboard shortcuts and mouse controls" aria-haspopup="dialog">?</button>
+    </div>
+  </main>
+</div>
+<dialog id="shotDlg" aria-label="Screenshot">
+  <img id="shotImg" alt="Screenshot of the preview">
+  <div class="btns">
+    <button id="shotCopy">Copy</button>
+    <button id="shotSave">Download</button>
+    <button id="shotClose" class="ghost">Close</button>
+  </div>
+</dialog>
+<dialog id="helpDlg" aria-labelledby="helpTitle">
+  <h2 id="helpTitle">Help</h2>
+  <h3>How it works</h3>
+  <ol>
+    <li>Type a name in the box at the top. Each letter becomes a bead.</li>
+    <li>Go through the tabs: bead shape and size, the cord you will use, letter font, spacer beads, colours.</li>
+    <li>Under Printer &amp; export, pick your printer and slicer, then press Export 3MF.</li>
+    <li>Open the downloaded file in your slicer, load the filament colours, slice and print.</li>
+    <li>Thread the beads on the cord and knot both ends.</li>
+  </ol>
+  <h3>Name</h3>
+  <dl>
+    <dt><kbd>Enter</kbd></dt><dd>Start the next cord</dd>
+    <dt><kbd>[heart]</kbd></dt><dd>Extra and icon beads go in brackets</dd>
+  </dl>
+  <h3>Anywhere</h3>
+  <dl>
+    <dt><kbd>Ctrl</kbd> <kbd>Z</kbd></dt><dd>Undo</dd>
+    <dt><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Z</kbd> / <kbd>Ctrl</kbd> <kbd>Y</kbd></dt><dd>Redo</dd>
+    <dt><kbd>?</kbd></dt><dd>Show this help (outside text boxes)</dd>
+  </dl>
+  <h3>Preview (outside text boxes)</h3>
+  <dl>
+    <dt><kbd>+</kbd> / <kbd>−</kbd></dt><dd>Zoom in / out</dd>
+    <dt><kbd>0</kbd></dt><dd>Fit to the window</dd>
+    <dt>Mouse wheel / pinch</dt><dd>Zoom</dd>
+    <dt>Drag the background</dt><dd>Look around. On cord, the view eases back 10 s after you let go</dd>
+    <dt>Right-drag / two fingers</dt><dd>Pan</dd>
+  </dl>
+  <h3>Beads</h3>
+  <dl>
+    <dt>Click a bead</dt><dd>Select it to change, colour, move, duplicate or delete it</dd>
+    <dt>Drag a bead</dt><dd>Reorder it, also onto another cord</dd>
+    <dt>Drag from Spacer beads</dt><dd>Drop an spacer bead straight onto the cord</dd>
+    <dt><kbd>←</kbd> / <kbd>→</kbd></dt><dd>Move the selected bead</dd>
+    <dt><kbd>Del</kbd> / <kbd>Backspace</kbd></dt><dd>Delete the selected bead</dd>
+    <dt><kbd>Esc</kbd></dt><dd>Deselect the bead, or close a window like this one</dd>
+  </dl>
+  <h3>Settings tabs</h3>
+  <dl>
+    <dt><kbd>←</kbd> <kbd>→</kbd> <kbd>Home</kbd> <kbd>End</kbd></dt><dd>Switch tab while a tab has focus</dd>
+  </dl>
+  <div class="btns"><button id="helpClose" class="ghost">Close</button></div>
+</dialog>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+
+const $ = id => document.getElementById(id);
+// the project was called Letter Bead Generator: carry settings saved under the old keys over to the new ones
+try { for (const k of ['v1', 'tab', 'view']) { const o = localStorage.getItem('letterBeads.' + k); if (o !== null && localStorage.getItem('strung.' + k) === null) localStorage.setItem('strung.' + k, o); } } catch {}
+
+/* ---------------- fonts ---------------- */
+const GF = 'https://cdn.jsdelivr.net/gh/google/fonts@main/';
+const FONTS = [
+  // [name, path in google/fonts repo, group]
+  ['Lilita One', 'ofl/lilitaone/LilitaOne-Regular.ttf', 'Bold & rounded'],
+  ['Luckiest Guy', 'apache/luckiestguy/LuckiestGuy-Regular.ttf', 'Bold & rounded'],
+  ['Titan One', 'ofl/titanone/TitanOne-Regular.ttf', 'Bold & rounded'],
+  ['Bagel Fat One', 'ofl/bagelfatone/BagelFatOne-Regular.ttf', 'Bold & rounded'],
+  ['Rammetto One', 'ofl/rammettoone/RammettoOne-Regular.ttf', 'Bold & rounded'],
+  ['Sigmar One', 'ofl/sigmarone/SigmarOne-Regular.ttf', 'Bold & rounded'],
+  ['Coiny', 'ofl/coiny/Coiny-Regular.ttf', 'Bold & rounded'],
+  ['Mochiy Pop One', 'ofl/mochiypopone/MochiyPopOne-Regular.ttf', 'Bold & rounded'],
+  ['Rubik Bubbles', 'ofl/rubikbubbles/RubikBubbles-Regular.ttf', 'Bold & rounded'],
+  ['Sniglet ExtraBold', 'ofl/sniglet/Sniglet-ExtraBold.ttf', 'Bold & rounded'],
+  ['Chewy', 'apache/chewy/Chewy-Regular.ttf', 'Bold & rounded'],
+  ['Bubblegum Sans', 'ofl/bubblegumsans/BubblegumSans-Regular.ttf', 'Bold & rounded'],
+  ['Varela Round', 'ofl/varelaround/VarelaRound-Regular.ttf', 'Bold & rounded'],
+  ['Londrina Solid Black', 'ofl/londrinasolid/LondrinaSolid-Black.ttf', 'Bold & rounded'],
+  ['Paytone One', 'ofl/paytoneone/PaytoneOne-Regular.ttf', 'Bold & rounded'],
+  ['Bowlby One', 'ofl/bowlbyone/BowlbyOne-Regular.ttf', 'Heavy sans'],
+  ['Bowlby One SC', 'ofl/bowlbyonesc/BowlbyOneSC-Regular.ttf', 'Heavy sans'],
+  ['Archivo Black', 'ofl/archivoblack/ArchivoBlack-Regular.ttf', 'Heavy sans'],
+  ['Poppins Black', 'ofl/poppins/Poppins-Black.ttf', 'Heavy sans'],
+  ['Poppins ExtraBold', 'ofl/poppins/Poppins-ExtraBold.ttf', 'Heavy sans'],
+  ['Montserrat Alternates Black', 'ofl/montserratalternates/MontserratAlternates-Black.ttf', 'Heavy sans'],
+  ['Lato Black', 'ofl/lato/Lato-Black.ttf', 'Heavy sans'],
+  ['Fira Sans ExtraBold', 'ofl/firasans/FiraSans-ExtraBold.ttf', 'Heavy sans'],
+  ['Ubuntu Bold', 'ufl/ubuntu/Ubuntu-Bold.ttf', 'Heavy sans'],
+  ['Kanit Black', 'ofl/kanit/Kanit-Black.ttf', 'Heavy sans'],
+  ['Kanit ExtraBold Italic', 'ofl/kanit/Kanit-ExtraBoldItalic.ttf', 'Heavy sans'],
+  ['Black Han Sans', 'ofl/blackhansans/BlackHanSans-Regular.ttf', 'Heavy sans'],
+  ['Russo One', 'ofl/russoone/RussoOne-Regular.ttf', 'Heavy sans'],
+  ['Changa One', 'ofl/changaone/ChangaOne-Regular.ttf', 'Heavy sans'],
+  ['Passion One Bold', 'ofl/passionone/PassionOne-Bold.ttf', 'Heavy sans'],
+  ['Fugaz One', 'ofl/fugazone/FugazOne-Regular.ttf', 'Heavy sans'],
+  ['Racing Sans One', 'ofl/racingsansone/RacingSansOne-Regular.ttf', 'Heavy sans'],
+  ['Anton', 'ofl/anton/Anton-Regular.ttf', 'Condensed'],
+  ['Bebas Neue', 'ofl/bebasneue/BebasNeue-Regular.ttf', 'Condensed'],
+  ['Staatliches', 'ofl/staatliches/Staatliches-Regular.ttf', 'Condensed'],
+  ['Francois One', 'ofl/francoisone/FrancoisOne-Regular.ttf', 'Condensed'],
+  ['Alfa Slab One', 'ofl/alfaslabone/AlfaSlabOne-Regular.ttf', 'Serif & slab'],
+  ['Ultra', 'apache/ultra/Ultra-Regular.ttf', 'Serif & slab'],
+  ['Abril Fatface', 'ofl/abrilfatface/AbrilFatface-Regular.ttf', 'Serif & slab'],
+  ['Carter One', 'ofl/carterone/CarterOne.ttf', 'Serif & slab'],
+  ['Shrikhand', 'ofl/shrikhand/Shrikhand-Regular.ttf', 'Serif & slab'],
+  ['Pacifico', 'ofl/pacifico/Pacifico-Regular.ttf', 'Script'],
+  ['Lobster', 'ofl/lobster/Lobster-Regular.ttf', 'Script'],
+  ['Kaushan Script', 'ofl/kaushanscript/KaushanScript-Regular.ttf', 'Script'],
+  ['Chicle', 'ofl/chicle/Chicle-Regular.ttf', 'Script'],
+  ['Oleo Script Bold', 'ofl/oleoscript/OleoScript-Bold.ttf', 'Script'],
+  ['Leckerli One', 'ofl/leckerlione/LeckerliOne-Regular.ttf', 'Script'],
+  ['Damion', 'ofl/damion/Damion-Regular.ttf', 'Script'],
+  ['Grand Hotel', 'ofl/grandhotel/GrandHotel-Regular.ttf', 'Script'],
+  ['Courgette', 'ofl/courgette/Courgette-Regular.ttf', 'Script'],
+  ['Satisfy', 'apache/satisfy/Satisfy-Regular.ttf', 'Script'],
+  ['Yellowtail', 'apache/yellowtail/Yellowtail-Regular.ttf', 'Script'],
+  ['Great Vibes (thin)', 'ofl/greatvibes/GreatVibes-Regular.ttf', 'Script'],
+  ['Permanent Marker', 'apache/permanentmarker/PermanentMarker-Regular.ttf', 'Handwritten'],
+  ['Caveat Brush', 'ofl/caveatbrush/CaveatBrush-Regular.ttf', 'Handwritten'],
+  ['Kalam Bold', 'ofl/kalam/Kalam-Bold.ttf', 'Handwritten'],
+  ['Patrick Hand', 'ofl/patrickhand/PatrickHand-Regular.ttf', 'Handwritten'],
+  ['Gochi Hand', 'ofl/gochihand/GochiHand-Regular.ttf', 'Handwritten'],
+  ['Gloria Hallelujah', 'ofl/gloriahallelujah/GloriaHallelujah.ttf', 'Handwritten'],
+  ['Sedgwick Ave Display', 'ofl/sedgwickavedisplay/SedgwickAveDisplay-Regular.ttf', 'Handwritten'],
+  ['Barriecito', 'ofl/barriecito/Barriecito-Regular.ttf', 'Handwritten'],
+  ['Dokdo', 'ofl/dokdo/Dokdo-Regular.ttf', 'Handwritten'],
+  ['Bangers', 'ofl/bangers/Bangers-Regular.ttf', 'Display & fun'],
+  ['Righteous', 'ofl/righteous/Righteous-Regular.ttf', 'Display & fun'],
+  ['Bungee', 'ofl/bungee/Bungee-Regular.ttf', 'Display & fun'],
+  ['Rubik Mono One', 'ofl/rubikmonoone/RubikMonoOne-Regular.ttf', 'Display & fun'],
+  ['Black Ops One (stencil)', 'ofl/blackopsone/BlackOpsOne-Regular.ttf', 'Display & fun'],
+  ['Audiowide', 'ofl/audiowide/Audiowide-Regular.ttf', 'Display & fun'],
+  ['Creepster', 'ofl/creepster/Creepster-Regular.ttf', 'Display & fun'],
+  ['Original Surfer', 'ofl/originalsurfer/OriginalSurfer-Regular.ttf', 'Display & fun'],
+  ['Rubik Wet Paint', 'ofl/rubikwetpaint/RubikWetPaint-Regular.ttf', 'Display & fun'],
+  ['Rubik Moonrocks', 'ofl/rubikmoonrocks/RubikMoonrocks-Regular.ttf', 'Display & fun'],
+  ['Special Elite (typewriter)', 'apache/specialelite/SpecialElite-Regular.ttf', 'Display & fun'],
+  ['Press Start 2P (pixel)', 'ofl/pressstart2p/PressStart2P-Regular.ttf', 'Pixel'],
+  ['Silkscreen Bold (pixel)', 'ofl/silkscreen/Silkscreen-Bold.ttf', 'Pixel'],
+  ['VT323 (pixel)', 'ofl/vt323/VT323-Regular.ttf', 'Pixel'],
+];
+const fontCache = new Map();
+async function loadFont(key) {
+  if (fontCache.has(key)) return fontCache.get(key);
+  const entry = FONTS.find(f => f[0] === key);
+  if (!entry) throw new Error('Unknown font ' + key);
+  const res = await fetch(GF + entry[1]);
+  if (!res.ok) throw new Error(`Could not load font ${key} (HTTP ${res.status})`);
+  const font = opentype.parse(await res.arrayBuffer());
+  fontCache.set(key, font);
+  return font;
+}
+
+/* ---------------- icons ---------------- */
+const SI = 'https://cdn.jsdelivr.net/npm/simple-icons@15.22.0/icons/';
+const MDI = 'https://cdn.jsdelivr.net/npm/@mdi/svg@7.4.47/svg/';
+const ICONS = [
+  // [id, label, url, group]
+  ...[['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['facebook', 'Facebook'], ['x', 'X (Twitter)'],
+      ['threads', 'Threads'], ['bluesky', 'Bluesky'], ['snapchat', 'Snapchat'], ['whatsapp', 'WhatsApp'], ['telegram', 'Telegram'],
+      ['discord', 'Discord'], ['twitch', 'Twitch'], ['kick', 'Kick'], ['reddit', 'Reddit'], ['pinterest', 'Pinterest'],
+      ['spotify', 'Spotify'], ['applemusic', 'Apple Music'], ['soundcloud', 'SoundCloud'], ['steam', 'Steam'], ['playstation', 'PlayStation'],
+      ['roblox', 'Roblox'], ['github', 'GitHub'], ['strava', 'Strava'], ['patreon', 'Patreon'], ['linktree', 'Linktree']]
+    .map(([id, l]) => ['si:' + id, l, SI + id + '.svg', 'Social & brands']),
+  ...[['heart', 'Heart'], ['star', 'Star'], ['crown', 'Crown'], ['paw', 'Paw'], ['cat', 'Cat'], ['dog', 'Dog'], ['rabbit', 'Rabbit'],
+      ['horse', 'Horse'], ['unicorn', 'Unicorn'], ['butterfly', 'Butterfly'], ['fish', 'Fish'], ['bone', 'Bone'], ['flower', 'Flower'],
+      ['clover', 'Clover'], ['pine-tree', 'Tree'], ['snowflake', 'Snowflake'], ['weather-sunny', 'Sun'], ['moon-waning-crescent', 'Moon'],
+      ['lightning-bolt', 'Lightning'], ['music', 'Music note'], ['guitar-acoustic', 'Guitar'], ['gamepad-variant', 'Gamepad'],
+      ['soccer', 'Soccer ball'], ['basketball', 'Basketball'], ['football', 'Football'], ['car-sports', 'Car'], ['airplane', 'Airplane'],
+      ['rocket-launch', 'Rocket'], ['anchor', 'Anchor'], ['home', 'House'], ['key', 'Key'], ['cake-variant', 'Cake'],
+      ['emoticon-happy', 'Smiley'], ['ghost', 'Ghost'], ['skull', 'Skull'], ['cross', 'Cross'], ['peace', 'Peace']]
+    .map(([id, l]) => ['mdi:' + id, l, MDI + id + '.svg', 'Symbols']),
+];
+const svgLoader = new SVGLoader();
+// returns { paths (clipper, unit height 1, centered), fill } or null
+function parseSvgIcon(svgText) {
+  const data = svgLoader.parse(svgText);
+  const contours = []; let evenodd = false;
+  for (const path of data.paths) {
+    const st = path.userData?.style || {};
+    if (st.fill === 'none' || st.fill === 'transparent') continue;
+    if (st.fillRule === 'evenodd') evenodd = true;
+    for (const sp of path.subPaths) {
+      const pts = sp.getPoints(16);
+      if (pts.length > 2) contours.push(pts.map(v => [v.x, -v.y])); // svg y down
+    }
+  }
+  if (!contours.length) return null;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const c of contours) for (const [x, y] of c) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  const h = (y1 - y0) || 1, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const U = 1e4; // fixed resolution for unit icon
+  let paths = contours.map(c => c.map(([x, y]) => ({ X: Math.round((x - cx) / h * U), Y: Math.round((y - cy) / h * U) })));
+  const ft = evenodd ? C.PolyFillType.pftEvenOdd : C.PolyFillType.pftNonZero;
+  paths = union(paths, ft);
+  return { paths, U, aspect: (x1 - x0) / h };
+}
+const iconCache = new Map();
+function findIcon(tok) {
+  const t = tok.toLowerCase().trim();
+  return ICONS.find(i => i[0] === t || i[0].split(':')[1] === t || i[1].toLowerCase() === t);
+}
+async function loadIcon(entry) {
+  if (iconCache.has(entry[0])) return iconCache.get(entry[0]);
+  const res = await fetch(entry[2]);
+  if (!res.ok) throw new Error(`Could not load icon ${entry[1]} (HTTP ${res.status})`);
+  const ic = parseSvgIcon(await res.text());
+  iconCache.set(entry[0], ic);
+  return ic;
+}
+
+/* ---------------- plates ---------------- */
+const PLATES = [
+  ['a1mini', 'Bambu Lab A1 mini (180 × 180)', 180, 180],
+  ['a1', 'Bambu Lab A1 (256 × 256)', 256, 256],
+  ['p1', 'Bambu Lab P1S / P1P / X1C / P2S (256 × 256)', 256, 256],
+  ['h2d', 'Bambu Lab H2D, both nozzles (325 × 320)', 325, 320],
+  ['h2s', 'Bambu Lab H2S (340 × 320)', 340, 320],
+  ['pmini', 'Prusa MINI+ (180 × 180)', 180, 180],
+  ['mk4', 'Prusa MK4S / MK3S (250 × 210)', 250, 210],
+  ['core1', 'Prusa CORE One (250 × 220)', 250, 220],
+  ['pxl', 'Prusa XL (360 × 360)', 360, 360],
+  ['ender3', 'Creality Ender‑3 V3 / K1 / K1C (220 × 220)', 220, 220],
+  ['k1max', 'Creality K1 Max (300 × 300)', 300, 300],
+  ['k2', 'Creality K2 Plus (350 × 350)', 350, 350],
+  ['cc', 'Elegoo Centauri Carbon (256 × 256)', 256, 256],
+  ['kobra3', 'Anycubic Kobra 3 (250 × 250)', 250, 250],
+  ['voron350', 'Voron 2.4 350 (350 × 350)', 350, 350],
+  ['custom', 'Custom…', 0, 0],
+  ['none', 'None (free layout)', 0, 0],
+];
+
+/* ---------------- parameters ---------------- */
+// [id, label, min, max, step, default, container]
+const NUM = [
+  ['diameter', 'Bead size (mm)', 15, 120, 1, 55, 'beadCtl'],
+  ['thick', 'Thickness (mm)', 4, 40, 0.5, 16, 'beadCtl'],
+  ['cornerR', 'Corner radius (mm)', 0, 30, 0.5, 8, 'beadCtl'],
+  ['edgeSize', 'Edge size (mm)', 0, 10, 0.1, 3, 'edgeCtl'],
+  ['holeD', 'Hole diameter (mm)', 1, 20, 0.1, 5, 'holeCtl'],
+  ['holeW', 'Slot width (mm)', 3, 30, 0.1, 9.5, 'holeCtl'],
+  ['puckD', 'Puck size (mm)', 10, 80, 1, 25, 'extraCtl'],
+  ['barrelD', 'Barrel diameter (mm)', 8, 60, 0.5, 22, 'extraCtl'],
+  ['barrelL', 'Barrel length (mm)', 8, 100, 0.5, 21.5, 'extraCtl'],
+  ['cubeD', 'Cube size (mm)', 10, 80, 0.5, 30, 'extraCtl'],
+  ['cubeT', 'Cube thickness (mm)', 6, 80, 0.5, 14, 'extraCtl'],
+  ['heartPct', 'Heart bead size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
+  ['decorPct', 'Bow size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
+  ['starPct', 'Star bead size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
+  ['extraPct', 'Other shapes size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
+  ['letterPct', 'Letter height (% of bead)', 20, 80, 1, 55, 'letterCtl'],
+  ['fitPct', 'Max letter width (% of bead)', 30, 95, 1, 78, 'letterCtl'],
+  ['depth', 'Letter depth (mm)', 0.4, 5, 0.1, 1.2, 'letterCtl'],
+  ['raise', 'Raised height (mm)', 0.4, 5, 0.1, 1.2, 'letterCtl'],
+  ['textBold', 'Bolder / thinner letter (mm)', -0.5, 2, 0.05, 0, 'letterCtl'],
+  ['letterY', 'Move letter up/down (mm)', -15, 15, 0.1, 0, 'letterCtl'],
+  ['clones', 'Number of sets', 1, 50, 1, 1, 'plateCtl'],
+  ['plateMargin', 'Gap to plate edge (mm)', 0, 30, 0.5, 5, 'plateCtl'],
+  ['batchGap', 'Gap between beads (mm)', 1, 20, 0.5, 4, 'plateCtl'],
+  ['curveSeg', 'Letter smoothness', 2, 24, 1, 8, 'qualCtl'],
+];
+// rarely needed sliders sit in the Advanced group of their tab instead of their container
+const ADV = { edgeSize: 'advBead', holeW: 'advHole', fitPct: 'advLetter', depth: 'advLetter', raise: 'advLetter', textBold: 'advLetter', letterY: 'advLetter', plateMargin: 'advExport', batchGap: 'advExport' };
+// what a slider is for, as a tooltip on its row (the technical term stays here)
+const TIPS = {
+  diameter: 'Width of each letter bead', thick: 'How thick each bead is, front to back. Thicker beads are sturdier around the cord hole.',
+  cornerR: 'How round the corners are', edgeSize: 'How far the bevel or rounding reaches in from the rim (chamfer / fillet size)',
+  holeD: 'Width of the hole the cord goes through. About 1 mm wider than the cord threads easily.', holeW: 'Width of the slot for two cords side by side',
+  letterPct: 'Height of a capital letter, as a share of the bead size', fitPct: 'Wide letters like W and M are shrunk to fit inside this share of the bead',
+  depth: 'How deep the letter goes into the face (inlay / engrave depth)', raise: 'How far a raised letter stands up from the face',
+  textBold: 'Makes thin fonts bolder so they print well; below 0 makes letters thinner', letterY: 'Nudges the letter up or down on the bead',
+  clones: 'One set is every bead in the name, once. Print several sets to make the same name more than once.',
+  plateMargin: 'Space kept free along the edges of the build plate', batchGap: 'Space between neighbouring beads on the build plate',
+  curveSeg: 'Curve segments: how many straight pieces each curve of a letter is made of. Higher is smoother but slower.',
+};
+const clampNum = (el, def) => { const v = parseFloat(el.value); return isFinite(v) ? Math.min(el.max === '' ? Infinity : +el.max, Math.max(el.min === '' ? -Infinity : +el.min, v)) : def; };
+const OTHER_DEFAULTS = {
+  name: '[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]', sizePreset: '55', shape: 'circle', edgeStyle: 'printable', bottomEdge: 'printable', cord: 'paracord', holeAxis: 'x', holeShape: 'round', teardrop: true, spacerPuck: false, bowRotate: true, decorArt: 'outline', splitPlates: true, faceDown: false,
+  font: 'Archivo Black', letterMode: 'inlay', upper: true, backLetter: false, blankSpace: false,
+  beadColor: '#f4f1ea', letterColor: '#1c1c1f', beadExt: 1, letterExt: 2, accentColor: '#d64545', accentExt: 3,
+  fmt: 'bambu', bblPrinter: 'auto', bedType: 'Textured PEI Plate', primeTower: true, colorMode: 'paint', plate: 'a1mini', plateW: 200, plateD: 200, batchCols: 6,
+};
+// recommended hole for each cord: cord + clearance (d = diameter or slot height, w = slot width)
+const CORDS = { elastic: { d: 2.0 }, ballchain: { d: 3.2 }, leather: { d: 4.0 }, shoelace: { d: 4.5 }, paracord: { d: 5.0 },
+  paracord2: { d: 5.0, w: 9.5, shape: 'slot' }, cord6: { d: 7.0 }, rope8: { d: 9.5 } };
+function matchCord() {
+  const d = parseFloat($('holeD').value), w = parseFloat($('holeW').value), sh = $('holeShape').value;
+  return Object.entries(CORDS).find(([, c]) => Math.abs(c.d - d) < 1e-6 && (c.shape || 'round') === sh && (sh !== 'slot' || Math.abs(c.w - w) < 1e-6))?.[0] || 'custom';
+}
+
+function defaultOf(id) { const n = NUM.find(x => x[0] === id); return n ? n[5] : OTHER_DEFAULTS[id]; }
+function defaults() { const p = { ...OTHER_DEFAULTS }; for (const [id, , , , , d] of NUM) p[id] = d; return p; }
+
+function buildControls() {
+  for (const [id, label, min, max, step, def, cont] of NUM) {
+    const row = document.createElement('div');
+    row.className = 'row'; row.id = id + 'Row';
+    row.innerHTML = `<label for="${id}">${label}</label>
+      <input type="range" id="${id}R" min="${min}" max="${max}" step="${step}" value="${def}" aria-label="${label}">
+      <input type="number" id="${id}" min="${min}" max="${max}" step="${step}" value="${def}">`;
+    if (TIPS[id]) row.title = TIPS[id];
+    $(ADV[id] || cont).appendChild(row);
+  }
+  document.querySelectorAll('input[type=range]').forEach(r => {
+    const n = $(r.id.slice(0, -1)); if (!n) return;
+    r.addEventListener('input', () => { n.value = r.value; onChange(n.id); });
+    n.addEventListener('input', () => { r.value = n.value; onChange(n.id); });
+    // an empty or out-of-range number is used clamped while typing; show what was used once the box is left
+    n.addEventListener('change', () => { const v = clampNum(n, defaultOf(n.id)); if (String(v) !== n.value) { n.value = v; r.value = v; } });
+    const b = document.createElement('button');
+    b.className = 'rst'; b.type = 'button'; b.title = 'Reset to default'; b.setAttribute('aria-label', 'Reset to default'); b.textContent = '↺'; b.dataset.for = n.id;
+    b.onclick = () => { const d = defaultOf(n.id); n.value = d; r.value = d; onChange(n.id); };
+    r.parentElement.appendChild(b);
+  });
+  const addGrouped = (sel, list, vi, li, gi) => {
+    const groups = new Map();
+    for (const e of list) {
+      if (!groups.has(e[gi])) { const g = document.createElement('optgroup'); g.label = e[gi]; groups.set(e[gi], g); sel.appendChild(g); }
+      groups.get(e[gi]).appendChild(new Option(e[li], e[vi]));
+    }
+  };
+  addGrouped($('font'), FONTS, 0, 0, 2);
+  for (const [id, label] of PLATES) $('plate').add(new Option(label, id));
+  // Advanced groups stay open or closed across reloads
+  let open = []; try { open = JSON.parse(localStorage.getItem('strung.adv')) || []; } catch {}
+  document.querySelectorAll('details.adv').forEach(a => {
+    a.open = open.includes(a.id);
+    a.addEventListener('toggle', () => { try { localStorage.setItem('strung.adv', JSON.stringify([...document.querySelectorAll('details.adv[open]')].map(x => x.id))); } catch {} });
+  });
+}
+function readParams() {
+  const p = {};
+  for (const [id, , , , , def] of NUM) p[id] = clampNum($(id), def);
+  for (const k of Object.keys(OTHER_DEFAULTS)) {
+    const el = $(k); if (!el) { p[k] = OTHER_DEFAULTS[k]; continue; }
+    p[k] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Math.round(clampNum(el, OTHER_DEFAULTS[k])) : el.value;
+  }
+  p.showPlate = true; p.allowRot = false;
+  return p;
+}
+function writeParams(p) {
+  for (const [id, , , , , def] of NUM) { const v = p[id] ?? def; $(id).value = v; $(id + 'R').value = v; }
+  for (const [k, def] of Object.entries(OTHER_DEFAULTS)) {
+    const el = $(k); if (!el) continue;
+    const v = p[k] ?? def;
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
+  }
+  lostFont = p.font === '__custom' && !customFont; // an uploaded font file is not stored: say so instead of silently swapping the font
+  if (![...$('font').options].some(o => o.value === $('font').value)) $('font').value = OTHER_DEFAULTS.font;
+  for (const k of ['sizePreset', 'cord', 'shape', 'edgeStyle', 'bottomEdge', 'holeAxis', 'holeShape', 'letterMode', 'decorArt', 'fmt', 'bblPrinter', 'bedType', 'colorMode', 'plate']) if ($(k).selectedIndex < 0) $(k).value = OTHER_DEFAULTS[k]; // unknown value in a link or file
+  syncUi();
+}
+function syncUi() {
+  const p = readParams();
+  const cube = p.shape === 'cube';
+  $('cornerRRow').style.display = p.shape === 'square' || cube ? '' : 'none';
+  $('cornerRRow').querySelector('label').textContent = cube ? 'Corner & edge radius (mm)' : 'Corner radius (mm)';
+  $('thickRow').querySelector('label').textContent = cube ? 'Spacer bead thickness (mm)' : 'Thickness (mm)';
+  $('edgeStyleRow').style.display = cube ? 'none' : '';
+  $('edgeSizeRow').style.display = cube || (p.edgeStyle === 'none' && p.bottomEdge !== 'printable') ? 'none' : '';
+  $('raiseRow').style.display = p.letterMode === 'raised' ? '' : 'none';
+  $('depthRow').style.display = p.letterMode === 'raised' ? 'none' : '';
+  $('customPlate').style.display = p.plate === 'custom' ? '' : 'none';
+  $('holeWRow').style.display = p.holeShape === 'slot' ? '' : 'none';
+  document.querySelectorAll('.bblRow').forEach(el => el.style.display = p.fmt === 'bambu' ? '' : 'none');
+  const bk = bblKey(p), bp = bk && window.BBL_PROFILES.printers[bk];
+  $('bblInfo').textContent = p.fmt !== 'bambu' ? 'The file opens in PrusaSlicer with the colours already painted on. Choose your printer and filaments there.'
+    : bk ? `The file opens in Bambu Studio ready to slice: ${bp.cfg.printer_settings_id ?? BBL_PROFILES.base.cfg.printer_settings_id}, ${bp.cfg.print_settings_id ?? BBL_PROFILES.base.cfg.print_settings_id}, ${bp.fname}, every plate loaded.`
+      + (p.bblPrinter === 'auto' && p.plate === 'p1' ? ' Not a P1S? Choose yours under Bambu model.' : '')
+    : !window.BBL_PROFILES ? 'The Bambu printer setups did not load (bambu-profiles.js is missing next to index.html): the file holds the beads and colours only.'
+    : p.bblPrinter === 'none' ? 'Beads and colours only: the slicer loads them onto one plate and keeps the printer and filaments it already has selected.'
+    : 'The file holds the beads and colours. Choose your printer and filaments in the slicer; for a Bambu printer, pick it under Printer for a ready-to-slice project.';
+  $('holeDRow').querySelector('label').textContent = p.holeShape === 'slot' ? 'Slot height (mm)' : 'Hole diameter (mm)';
+  document.querySelectorAll('.rst').forEach(b => {
+    const v = parseFloat($(b.dataset.for).value), d = defaultOf(b.dataset.for);
+    b.classList.toggle('on', Math.abs(v - d) > 1e-9);
+  });
+  $('thickInfo').textContent = `Thinnest safe thickness for this cord hole and letter depth: ${minThick(p).toFixed(1)} mm.`;
+  // an Advanced group holding a setting that is not at its default says so while closed
+  const d = defaults();
+  document.querySelectorAll('details.adv').forEach(a => a.classList.toggle('chg', [...a.querySelectorAll('input[id], select[id]')]
+    .some(el => el.id in d && (typeof d[el.id] === 'number' ? Math.abs(p[el.id] - d[el.id]) > 1e-9 : p[el.id] !== d[el.id]))));
+}
+
+/* ---------------- 2D geometry (Clipper) ---------------- */
+const S = 1000; // clipper units per mm
+const C = ClipperLib;
+
+function union(paths, fill = C.PolyFillType.pftNonZero) {
+  const c = new C.Clipper(); c.StrictlySimple = true;
+  c.AddPaths(paths, C.PolyType.ptSubject, true);
+  const out = new C.Paths();
+  c.Execute(C.ClipType.ctUnion, out, fill, fill);
+  return out;
+}
+function boolOp(type, a, b) {
+  const c = new C.Clipper(); c.StrictlySimple = true;
+  c.AddPaths(a, C.PolyType.ptSubject, true);
+  c.AddPaths(b, C.PolyType.ptClip, true);
+  const out = new C.Paths();
+  c.Execute(type, out, C.PolyFillType.pftNonZero, C.PolyFillType.pftNonZero);
+  return out;
+}
+const diff = (a, b) => b.length ? boolOp(C.ClipType.ctDifference, a, b) : a;
+const unite = (a, b) => boolOp(C.ClipType.ctUnion, a, b);
+function offset(paths, mm, endType = C.EndType.etClosedPolygon) {
+  if (Math.abs(mm) < 1e-6 && endType === C.EndType.etClosedPolygon) return paths;
+  const co = new C.ClipperOffset(2, 0.01 * S);
+  co.AddPaths(paths, C.JoinType.jtRound, endType);
+  const out = new C.Paths();
+  co.Execute(out, mm * S);
+  return out;
+}
+function circle(cx, cy, r, n = 0) {
+  n = n || Math.max(32, Math.ceil(r * 12));
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    pts.push({ X: Math.round((cx + r * Math.cos(a)) * S), Y: Math.round((cy + r * Math.sin(a)) * S) });
+  }
+  return [pts];
+}
+function bounds(paths) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of paths) for (const q of p) {
+    if (q.X < x0) x0 = q.X; if (q.X > x1) x1 = q.X; if (q.Y < y0) y0 = q.Y; if (q.Y > y1) y1 = q.Y;
+  }
+  return { x0: x0 / S, y0: y0 / S, x1: x1 / S, y1: y1 / S };
+}
+function insideAny(paths, x, y) {
+  // nonzero-ish: inside if inside an odd number of contours
+  let n = 0; const pt = { X: Math.round(x * S), Y: Math.round(y * S) };
+  for (const p of paths) if (C.Clipper.PointInPolygon(pt, p) !== 0) n++;
+  return n % 2 === 1;
+}
+
+/* text -> clipper paths (mm, y up, centered) */
+function textToPaths(font, text, p) {
+  const FS = 100; // working font size
+  const upm = font.unitsPerEm;
+  let glyphs;
+  // some fonts use GSUB lookups opentype.js can't apply: fall back to plain cmap mapping
+  try { glyphs = font.stringToGlyphs(text); } catch { glyphs = [...text].map(ch => font.charToGlyph(ch)); }
+  // reference height to compute scale
+  let ref;
+  if (p.sizeBy === 'cap') {
+    let cap = font.tables.os2 && font.tables.os2.sCapHeight;
+    if (!cap) { const bb = font.charToGlyph('H').getBoundingBox(); cap = bb.y2 - bb.y1; }
+    ref = cap * FS / upm;
+  }
+  // first pass without spacing for bbox ref
+  let wordFU = 0;
+  const raw = (spacingFU) => {
+    const out = []; let x = 0;
+    for (let i = 0; i < glyphs.length; i++) {
+      const g = glyphs[i];
+      out.push(...flattenPath(g.getPath(x, 0, FS), p.curveSeg));
+      x += g.advanceWidth * FS / upm + spacingFU + (g.unicode === 32 ? wordFU : 0);
+      if (i < glyphs.length - 1) x += font.getKerningValue(g, glyphs[i + 1]) * FS / upm;
+    }
+    return out;
+  };
+  let contours = raw(0);
+  if (!contours.length) return [];
+  if (p.sizeBy !== 'cap') {
+    let y0 = Infinity, y1 = -Infinity;
+    for (const c of contours) for (const [, y] of c) { y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    ref = y1 - y0;
+  }
+  const k = p.textHeight / ref; // mm per working unit
+  wordFU = p.wordSpacing / k;
+  if (p.letterSpacing || p.wordSpacing) contours = raw(p.letterSpacing / k);
+  let paths = contours.map(c => c.map(([x, y]) => ({ X: Math.round(x * k * S), Y: Math.round(-y * k * S) })));
+  paths = union(paths);
+  if (p.textBold) paths = offset(paths, p.textBold);
+  // center
+  const b = bounds(paths);
+  const dx = Math.round(-(b.x0 + b.x1) / 2 * S), dy = Math.round(-(b.y0 + b.y1) / 2 * S);
+  return paths.map(pp => pp.map(q => ({ X: q.X + dx, Y: q.Y + dy })));
+}
+function flattenPath(path, seg) {
+  const out = []; let cur = null, sx = 0, sy = 0, x = 0, y = 0;
+  const push = (px, py) => { cur.push([px, py]); x = px; y = py; };
+  for (const c of path.commands) {
+    switch (c.type) {
+      case 'M': if (cur && cur.length > 2) out.push(cur); cur = []; push(c.x, c.y); sx = c.x; sy = c.y; break;
+      case 'L': push(c.x, c.y); break;
+      case 'Q': { const x0 = x, y0 = y;
+        for (let i = 1; i <= seg; i++) { const t = i / seg, u = 1 - t;
+          push(u*u*x0 + 2*u*t*c.x1 + t*t*c.x, u*u*y0 + 2*u*t*c.y1 + t*t*c.y); } break; }
+      case 'C': { const x0 = x, y0 = y;
+        for (let i = 1; i <= seg; i++) { const t = i / seg, u = 1 - t;
+          push(u*u*u*x0 + 3*u*u*t*c.x1 + 3*u*t*t*c.x2 + t*t*t*c.x, u*u*u*y0 + 3*u*u*t*c.y1 + 3*u*t*t*c.y2 + t*t*t*c.y); } break; }
+      case 'Z': if (cur && cur.length > 2) out.push(cur); cur = null; x = sx; y = sy; break;
+    }
+  }
+  if (cur && cur.length > 2) out.push(cur);
+  return out;
+}
+
+
+/* ---------------- 3D geometry (manifold-3d) ---------------- */
+let M = null;
+async function initManifold() {
+  const mod = await import('https://cdn.jsdelivr.net/npm/manifold-3d@3.5.4/manifold.js');
+  M = await mod.default();
+  if (M.setup) M.setup();
+}
+// face down: the letter face prints on the bed (smooth face). Raised letters cannot sit on the bed.
+const faceDown = p => !!p.faceDown && p.letterMode !== 'raised';
+const WALL = 1.6; // min plastic around the hole (mm)
+function minThick(p) {
+  if (p.holeAxis === 'none') return p.letterMode === 'raised' ? 2 : p.depth * (p.backLetter ? 2 : 1) + 1.5;
+  const holeTop = p.teardrop ? p.holeD / 2 * 1.2 : p.holeD / 2; // teardrop tip is clipped, adds a little
+  const face = p.letterMode === 'raised' ? 0 : p.depth;
+  return 2 * (holeTop + WALL + face);
+}
+const toPolys = paths => paths.map(pp => pp.map(q => [q.X / S, q.Y / S]));
+
+// 2D convex hull (monotone chain) of [[x,y]] mm points -> CCW [[x,y]]
+function hull2d(pts) {
+  const P = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const q of P) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = P.length - 1; i >= 0; i--) { const q = P[i]; while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+const circPts = (cx, cy, r, n = 64) => Array.from({ length: n }, (_, i) => [cx + r * Math.cos(i / n * 2 * Math.PI), cy + r * Math.sin(i / n * 2 * Math.PI)]);
+const toClip = pts => [pts.map(([x, y]) => ({ X: Math.round(x * S), Y: Math.round(y * S) }))];
+// heart W wide: two lobes, each the hull of a top circle and a rounded tip (both convex)
+function heartParts(W) {
+  const r = 0.27 * W, a = W / 2 - r, tip = circPts(0, -0.58 * W, 0.05 * W, 24);
+  return [-1, 1].map(s => toClip(hull2d([...circPts(s * a, 0, r), ...tip])));
+}
+// bow W wide: centre knot + two loops, all convex. Knot and loop necks grow so the cord hole (span mm) keeps 2.5 mm walls.
+// rotate: turn the bow 90° so the loops stand across the cord (cord passes through the knot only)
+function bowParts(W, span, rotate = false) {
+  // rotated: the cord only passes through the knot, so the loop necks stay slim and the loops keep their wedge shape
+  const kr = Math.max(0.11 * W, span / 2 + 2.5), nr = rotate ? 0.09 * W : Math.max(0.09 * W, span / 2 + 2.5);
+  const clip = pts => toClip(hull2d(rotate ? pts.map(([x, y]) => [-y, x]) : pts));
+  const knot = clip([...circPts(0, 0.09 * W, kr, 32), ...circPts(0, -0.09 * W, kr, 32)]);
+  const loop = s => clip([...circPts(s * 0.08 * W, 0, nr, 32), ...circPts(s * 0.37 * W, 0.15 * W, 0.13 * W, 48), ...circPts(s * 0.37 * W, -0.15 * W, 0.13 * W, 48)]);
+  return [loop(-1), knot, loop(1)];
+}
+// five-point star W wide (the same width as a W bead), one point up, rounded tips.
+// One convex part per point: its tip plus the four nearest inner corners, so the parts overlap across the whole centre.
+function starParts(W) {
+  const rt = 0.05 * W, R = (W / 2 - rt) / Math.cos(Math.PI / 10) + rt, ri = 0.5 * R, at = (r, deg) => [r * Math.cos(deg * Math.PI / 180), r * Math.sin(deg * Math.PI / 180)];
+  return Array.from({ length: 5 }, (_, i) => {
+    const a = 90 + i * 72, [cx, cy] = at(R - rt, a);
+    return toClip(hull2d([...circPts(cx, cy, rt, 24), ...[36, 108, -108, -36].map(d => at(ri, a + d))]));
+  });
+}
+// more extra bead shapes: kind -> label. Typed as [flower-bead], [soccer-bead], …
+const SHAPES = { flower: 'Flower', cloud: 'Cloud', butterfly: 'Butterfly', gem: 'Gem', paw: 'Paw', crown: 'Crown', football: 'Football', basketball: 'Basketball', soccer: 'Soccer ball' };
+const holeSpan = p => p.holeAxis === 'none' ? 0 : p.holeShape === 'slot' ? Math.max(p.holeW, p.holeD) : p.holeD;
+const shapeW = p => p.diameter * p.extraPct / 100;
+const GEM = [[-0.3, 0.36], [0.3, 0.36], [0.5, 0.13], [0, -0.42], [-0.5, 0.13]];
+const PAW_TOES = [[-0.33, 0.06], [-0.13, 0.27], [0.13, 0.27], [0.33, 0.06]];
+// convex parts of a SHAPES bead, W wide, centred on the cord hole. Coordinates below are fractions of W.
+// Parts overlap generously so the edge rounding of each part does not cut grooves into the face.
+function decorParts(kind, p) {
+  const W = shapeW(p), axisY = p.holeAxis === 'y';
+  const need = (holeSpan(p) / 2 + 2.5) / W; // radius that keeps 2.5 mm walls around the cord hole
+  const c = (x, y, r, n = 40) => circPts(x * W, y * W, r * W, n);
+  const part = (...pts) => toClip(hull2d(pts.flat()));
+  const rounded = (pts, r) => offset(offset(toClip(hull2d(pts.map(([x, y]) => [x * W, y * W]))), -r * W), r * W);
+  switch (kind) {
+    case 'flower': { // six petals, one on the cord axis
+      const a0 = axisY ? Math.PI / 6 : 0;
+      return [part(c(0, 0, 0.2)), ...Array.from({ length: 6 }, (_, i) => { const a = a0 + i * Math.PI / 3; return part(c(0.31 * Math.cos(a), 0.31 * Math.sin(a), 0.19), c(0, 0, 0.1)); })];
+    }
+    case 'cloud':
+      return [part(c(-0.3, -0.155, 0.2), c(0.3, -0.155, 0.2)), part(c(-0.2, 0.025, 0.2), c(-0.2, -0.155, 0.16)),
+        part(c(0.08, 0.085, 0.27), c(0.08, -0.155, 0.18)), part(c(0.32, -0.04, 0.17), c(0.3, -0.155, 0.15))];
+    case 'butterfly': { // body and wing roots grow with the cord hole
+      const kr = Math.max(0.075, need), nr = Math.max(0.08, need);
+      return [part(c(0, 0.2, kr), c(0, -0.24, kr * 0.85)), ...[-1, 1].flatMap(s => [
+        part(c(s * 0.08, 0, nr), c(s * 0.33, 0.2, 0.17), c(s * 0.36, 0.02, 0.13)),
+        part(c(s * 0.08, -0.02, nr * 0.9), c(s * 0.26, -0.24, 0.14))])];
+    }
+    case 'gem': return [rounded(GEM, 0.035)];
+    case 'paw':
+      return [part(c(-0.14, -0.2, 0.175), c(0.14, -0.2, 0.175), c(0, -0.06, 0.2)), ...PAW_TOES.map(([x, y]) => part(c(x, y, 0.17), c(0, 0, 0.1)))];
+    case 'crown': { // the band reaches high enough that the cord hole stays below the notches between the points
+      const yb = Math.max(-0.05, need - 0.1), tr = Math.max(0.075, axisY ? need : 0);
+      return [part(c(-0.4, -0.3, 0.05), c(0.4, -0.3, 0.05), c(-0.4, yb, 0.05), c(0.4, yb, 0.05)),
+        part(c(0, 0.3, tr), c(-0.17, yb, 0.05), c(0.17, yb, 0.05)),
+        ...[-1, 1].map(s => part(c(s * 0.43, 0.22, 0.07), c(s * 0.4, yb, 0.05), c(s * 0.12, yb, 0.05)))];
+    }
+    case 'football': { // pointed oval, long axis along the cord
+      const pts = [];
+      for (let i = 0; i <= 40; i++) { const x = -0.5 + i / 40; pts.push([x, 0.3 * (1 - 4 * x * x)], [x, -0.3 * (1 - 4 * x * x)]); }
+      return [rounded(axisY ? pts.map(([x, y]) => [-y, x]) : pts, 0.03)];
+    }
+    default: return [circle(0, 0, W / 2, Math.max(96, Math.round(W * 3)))]; // basketball, soccer
+  }
+}
+// markings on an extra bead as clipper paths (cut, inlaid or raised like a letter), solid or as outlines; null for a plain shape (puck, cloud) or with markings off
+function decorDetail(kind, p, bc) {
+  if (p.decorArt === 'none') return null;
+  const W = shapeW(p), axisY = p.holeAxis === 'y', lw = Math.max(1.2, 0.028 * W);
+  const disc = (x, y, r) => circle(x * W, y * W, r * W, 48);
+  const poly = pts => toClip(pts.map(([x, y]) => [x * W, y * W]));
+  const line = (...pts) => offset(poly(pts), lw / 2, C.EndType.etOpenRound);
+  let d, face = bc.inner; // face: the flat top the markings must stay on
+  switch (kind) {
+    case 'heartbead': { // smaller heart inside, set in from the bead's edge by d0, with a deeper V between the lobes
+      // a plain inset would have lobes of radius R on the bead's lobe centres, too far apart to meet in a V
+      const Wh = p.diameter * p.heartPct / 100, ob = bounds(bc.outline), ib = bounds(bc.inner);
+      const r = 0.27 * Wh, a = Wh / 2 - r, rt = 0.05 * Wh, d0 = Math.max(0.1 * Wh, ob.y1 - ib.y1 + 0.3), R = r - d0;
+      if (R < 0.05 * Wh) return null;
+      const ox = (ob.x0 + ob.x1) / 2, oy = ob.y1 - r; // lobe centres are at (ox ± a, oy)
+      const th = Math.atan2(a, 0.58 * Wh) + Math.asin((r - rt) / Math.hypot(a, 0.58 * Wh)); // angle of the bead's sides from vertical
+      const tipY = oy - 0.58 * Wh + (d0 - rt) / Math.sin(th);
+      // Outer profile: exactly the inset (lobe arcs of radius R on the bead's lobe centres, straight sides to the tip).
+      // Between the lobes: a bigger arc leaves each lobe tangentially, 30° in from its top, and sweeps down to the middle,
+      // so the V is two smooth curves meeting in a point. al: where the arc leaves the lobe; va: half the V's opening angle.
+      const al = 30 * Math.PI / 180, va = 45 * Math.PI / 180, rho = 0.03 * Wh;
+      const R2 = (a - R * Math.sin(al)) / (Math.cos(va) - Math.sin(al)); // arc radius that reaches the middle at that angle
+      const bx = a + (R2 - R) * Math.sin(al), by = (R - R2) * Math.cos(al), tx = a - R * Math.sin(al); // arc centre, tangent point x
+      const pieces = [toClip([[ox - a, oy], [ox + a, oy], [ox, tipY]])];
+      for (const sg of [-1, 1]) {
+        pieces.push(toClip(hull2d([...circPts(ox + sg * a, oy, R, 96), [ox, tipY]])));
+        pieces.push(boolOp(C.ClipType.ctIntersection, toClip(circPts(ox + sg * bx, oy + by, R2, 240)),
+          toClip([[ox, oy - R / 2], [ox + sg * tx, oy - R / 2], [ox + sg * tx, oy + R + 1], [ox, oy + R + 1]])));
+      }
+      // each piece is united on its own first: that gives them all the same winding, so overlaps add up instead of cancelling
+      d = [offset(offset(union(pieces.flatMap(pc => union(pc))), -rho), rho)]; // rounds the bottom tip a little; the V stays sharp
+      face = null; // not trimmed to bc.inner: that is rounded at the notch and would bite into the V
+      break;
+    }
+    case 'starbead': d = [offset(bc.outline, -0.13 * p.diameter * p.starPct / 100)]; break;  // smaller star inside
+    case 'cube': { const w = p.cubeD; d = [diff(offset(bc.inner, -0.05 * w), offset(bc.inner, -0.05 * w - Math.max(1.6, 0.04 * w)))]; break; } // frame
+    case 'bow': { // knot, plus two creases on each loop
+      const Wb = p.diameter * p.decorPct / 100, r = p.bowRotate ? ([x, y]) => [-y, x] : q => q;
+      const ln = (...pts) => offset(toClip(pts.map(q => r(q)).map(([x, y]) => [x * Wb, y * Wb])), Math.max(1.2, 0.028 * Wb) / 2, C.EndType.etOpenRound);
+      d = [offset(bowParts(Wb, holeSpan(p), p.bowRotate)[1], -Math.max(1, 0.035 * Wb)),
+        ...[-1, 1].flatMap(s => [ln([s * 0.2, 0.02], [s * 0.36, 0.1]), ln([s * 0.2, -0.02], [s * 0.36, -0.1])])];
+      break;
+    }
+    case 'flower': d = [disc(0, 0, 0.13)]; break;
+    case 'butterfly': d = [-1, 1].flatMap(s => [disc(s * 0.33, 0.2, 0.075), disc(s * 0.26, -0.24, 0.055)]); break;
+    case 'gem': d = [line([-0.5, 0.13], [0.5, 0.13]), line([-0.3, 0.36], [-0.17, 0.13], [0, 0.36], [0.17, 0.13], [0.3, 0.36]),
+      line([-0.17, 0.13], [0, -0.42]), line([0.17, 0.13], [0, -0.42])]; break;
+    case 'paw': d = [toClip(hull2d([...circPts(-0.13 * W, -0.2 * W, 0.105 * W), ...circPts(0.13 * W, -0.2 * W, 0.105 * W), ...circPts(0, -0.08 * W, 0.13 * W)])),
+      ...PAW_TOES.map(([x, y]) => disc(x, y, 0.095))]; break;
+    case 'crown': d = [disc(0, -0.18, 0.05), disc(-0.25, -0.18, 0.04), disc(0.25, -0.18, 0.04)]; break;
+    case 'football': { // laces
+      const r = axisY ? ([x, y]) => [-y, x] : q => q;
+      d = [line(r([-0.17, 0]), r([0.17, 0])), ...[-0.12, -0.04, 0.04, 0.12].map(x => line(r([x, -0.06]), r([x, 0.06])))]; break;
+    }
+    case 'basketball': {
+      const arc = s => Array.from({ length: 25 }, (_, i) => { const a = (120 + i * 5) * Math.PI / 180; return [s * (0.7 + 0.5 * Math.cos(a)), 0.5 * Math.sin(a)]; });
+      d = [line([-0.5, 0], [0.5, 0]), line([0, -0.5], [0, 0.5]), line(...arc(1)), line(...arc(-1))]; break;
+    }
+    case 'soccer': { // centre pentagon, five seams, five pentagons cut off by the rim; sized to the flat face
+      const ib = bounds(bc.inner), R = (ib.x1 - ib.x0) / 2 / W;
+      const at = (r, deg, o = [0, 0]) => [o[0] + r * Math.cos(deg * Math.PI / 180), o[1] + r * Math.sin(deg * Math.PI / 180)];
+      const rim = (a, k) => at(0.47 * R, a + 180 + 72 * k, at(1.03 * R, a));
+      d = [poly(Array.from({ length: 5 }, (_, i) => at(0.33 * R, 90 + 72 * i)))];
+      for (let i = 0; i < 5; i++) {
+        const a = 90 + 72 * i;
+        d.push(poly(Array.from({ length: 5 }, (_, k) => rim(a, k))), line(at(0.33 * R, a), rim(a, 0)), line(rim(a, -1), rim(a + 72, 1)));
+      }
+      break;
+    }
+    default: return null;
+  }
+  // outline: filled areas lose their inside, one line width in from the edge. Strokes are too thin to have an
+  // inside, so they stay as they are; so do dots whose hole would be under 2 mm across (too small to print cleanly).
+  const solid = union(d.flat());
+  const inside = p.decorArt === 'solid' ? [] : offset(solid, -lw).filter(pp => { const b = bounds([pp]); return Math.min(b.x1 - b.x0, b.y1 - b.y0) >= 2; });
+  // keep the markings on the flat face, clear of the edge rounding
+  const art = inside.length ? diff(solid, inside) : solid;
+  return face ? boolOp(C.ClipType.ctIntersection, art, face) : art;
+}
+// convex parts making up a bead outline; kind: main | puck | heartbead | bow | cube | starbead | any of SHAPES
+function shapeParts(p, kind = 'main') {
+  if (kind === 'puck') return { parts: [circle(0, 0, p.puckD / 2, Math.max(64, Math.round(p.puckD * 3)))], pole: false };
+  // barrel: built the way it prints, standing on end, so its outline is a circle and its "thickness" is its length
+  if (kind === 'barrel') return { parts: [circle(0, 0, p.barrelD / 2, Math.max(64, Math.round(p.barrelD * 3)))], pole: false };
+  if (kind === 'heartbead') return { parts: heartParts(p.diameter * p.heartPct / 100), pole: true };
+  if (kind === 'bow') return { parts: bowParts(p.diameter * p.decorPct / 100, holeSpan(p), p.bowRotate), pole: false };
+  if (SHAPES[kind]) return { parts: decorParts(kind, p), pole: false };
+  if (kind === 'cube') return { parts: [shapeOutline({ ...p, shape: 'cube', diameter: p.cubeD })], pole: false };
+  if (kind === 'starbead') return { parts: starParts(p.diameter * p.starPct / 100), pole: false };
+  if (p.shape === 'heart') return { parts: heartParts(p.diameter), pole: true };
+  return { parts: [shapeOutline(p)], pole: false };
+}
+// cube beads (letter beads with the cube shape, or a plain [cube]) are as tall as they are wide; pucks, hearts and bows keep the thickness setting.
+// A plain [cube] has its own size and thickness (Cube size, Cube thickness), so it does not dwarf the other extra beads.
+const isCube = (p, kind) => kind === 'cube' || (kind === 'main' && p.shape === 'cube');
+const beadT = (p, kind = 'main') => kind === 'barrel' ? p.barrelL : kind === 'cube' ? p.cubeT : isCube(p, kind) ? p.diameter : p.thick;
+function shapeOutline(p) {
+  const R = p.diameter / 2;
+  const poly = (n, a0) => {
+    const rv = R / Math.cos(Math.PI / n); // across-flats = diameter
+    const pts = [];
+    for (let i = 0; i < n; i++) { const a = a0 + i * 2 * Math.PI / n; pts.push({ X: Math.round(rv * Math.cos(a) * S), Y: Math.round(rv * Math.sin(a) * S) }); }
+    return [pts];
+  };
+  switch (p.shape) {
+    case 'square': case 'cube': {
+      const c = Math.min(p.cornerR, R * 0.98), h = (R - c) * S;
+      const sq = [[{ X: -h, Y: -h }, { X: h, Y: -h }, { X: h, Y: h }, { X: -h, Y: h }]].map(pp => pp.map(q => ({ X: Math.round(q.X), Y: Math.round(q.Y) })));
+      return c > 0 ? offset(sq, c) : sq;
+    }
+    case 'hexagon': return poly(6, Math.PI / 6);
+    case 'octagon': return poly(8, Math.PI / 8);
+    default: return circle(0, 0, R, Math.max(96, Math.round(p.diameter * 3)));
+  }
+}
+
+// body cache per bead kind: hull (solid bead), body (minus hole), hole solid; rebuilt only when bead params change
+const bodyCaches = new Map();
+function freeBodies() {
+  for (const bc of bodyCaches.values()) for (const o of new Set([bc.hull, bc.body, bc.hole])) o?.delete();
+  bodyCaches.clear();
+}
+function beadBody(p, kind = 'main') {
+  const key = JSON.stringify([kind, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate]);
+  if (bodyCaches.has(key)) return bodyCaches.get(key);
+  const T = beadT(p, kind), cube = isCube(p, kind), barrel = kind === 'barrel';
+  let { parts, pole } = shapeParts(p, kind);
+  let outline = union(parts.flat());
+  if (pole) {
+    // centre on the point deepest inside the shape (where the letter and hole go)
+    const b0 = bounds(outline), step = Math.max(0.1, (b0.x1 - b0.x0) / 200);
+    let last = outline;
+    for (let s = step; ; s += step) { const o = offset(outline, -s); if (!o.length) break; last = o; }
+    const b = bounds(last), dx = Math.round(-(b.x0 + b.x1) / 2 * S), dy = Math.round(-(b.y0 + b.y1) / 2 * S);
+    const mv = paths => paths.map(pp => pp.map(q => ({ X: q.X + dx, Y: q.Y + dy })));
+    parts = parts.map(mv); outline = mv(outline);
+  }
+  const ob = bounds(outline), minDim = Math.min(ob.x1 - ob.x0, ob.y1 - ob.y0);
+  // cube: top edges rounded with the corner radius, so every corner is a rounded corner
+  // (or the same 45° chamfer into radius as the bottom, so top and bottom match)
+  // barrel: always the 45° chamfer into radius on both ends, and the end faces keep a 1 mm rim around the hole
+  const edgeStyle = barrel ? 'printable' : cube ? (p.bottomEdge === 'printable' ? 'printable' : 'round') : p.edgeStyle;
+  // shapes with markings keep a small edge rounding, so the flat face stays big enough for the markings
+  const eMax = Math.max(0, Math.min(cube ? Math.min(p.cornerR, p.diameter / 2 * 0.98) : p.edgeSize, T / 2 - 0.05, kind === 'cube' ? T / 4 : Infinity, minDim / 4, SHAPES[kind] ? shapeW(p) * 0.05 : Infinity,
+    barrel ? ((p.barrelD - holeSpan(p)) / 2 - 1) / (2 - Math.SQRT2) : Infinity));
+  const e = edgeStyle === 'none' ? 0 : eMax;
+  // edge profile as [inset, height from that face]; top and bottom can differ
+  const edgeProfile = (style, r) => {
+    if (r <= 0.01 || style === 'none') return [[0, 0]];
+    if (style === 'chamfer') return [[r, 0], [0, r]];
+    const out = [];
+    if (style === 'printable') {
+      // 45° chamfer from the bed, meeting the radius tangentially at 45°: never overhangs more than 45°
+      const k = 1 - Math.SQRT1_2;
+      out.push([2 * k * r, 0]);
+      for (let i = 0; i <= 6; i++) { const th = (45 + i * 7.5) * Math.PI / 180; out.push([r - r * Math.sin(th), r - r * Math.cos(th)]); }
+      return out;
+    }
+    for (let i = 0; i <= 8; i++) { const th = i / 8 * Math.PI / 2; out.push([r - r * Math.sin(th), r - r * Math.cos(th)]); }
+    return out;
+  };
+  // the "bottom edge" is the edge on the bed: when printing face down that is the letter face (z = T)
+  const bedProf = barrel || p.bottomEdge === 'printable' ? edgeProfile('printable', eMax) : edgeProfile(edgeStyle, e);
+  const [lo, hi] = faceDown(p) ? [edgeProfile(edgeStyle, e), bedProf] : [bedProf, edgeProfile(edgeStyle, e)];
+  const prof = [...lo, ...hi.map(([inset, h]) => [inset, T - h])];
+  const hulls = parts.map(part => {
+    const pts = [];
+    for (const [inset, z] of prof) {
+      const o = inset > 0.001 ? offset(part, -inset) : part;
+      for (const pp of o) for (const q of pp) pts.push([q.X / S, q.Y / S, z]);
+    }
+    return M.Manifold.hull(pts);
+  });
+  const hull = hulls.length === 1 ? hulls[0] : M.Manifold.union(hulls);
+  if (hulls.length > 1) for (const h of hulls) h.delete();
+  let hole = null, body = hull;
+  if (p.holeAxis !== 'none') { hole = barrel ? barrelHole(p, T) : holeSolid(p, Math.max(ob.x1 - ob.x0, ob.y1 - ob.y0) * 2 + 20, T); body = hull.subtract(hole); }
+  // safe area for letters: inside the flat face, 1 mm clear of the edge rounding
+  const inner = offset(outline, -(eMax + (SHAPES[kind] ? 0.4 : 1)));
+  const bc = { key, hull, body, hole, outline, inner, bounds: ob, T };
+  bodyCaches.set(key, bc);
+  return bc;
+}
+// barrel: the cord runs through its length, which is vertical on the plate, so the hole is a plain vertical bore.
+// Doubled cord: the two cords sit side by side across the cord direction once the barrel lies on the cord.
+function barrelHole(p, T) {
+  const r = p.holeD / 2, n = 48, half = p.holeShape === 'slot' ? Math.max(0, (p.holeW - p.holeD) / 2) : 0;
+  let poly = [];
+  for (let i = 0; i < n; i++) { const th = i / n * 2 * Math.PI; poly.push([r * Math.cos(th), r * Math.sin(th)]); }
+  if (half > 0) poly = hull2d([...poly.map(([x, y]) => [x, y - half]), ...poly.map(([x, y]) => [x, y + half])]);
+  if (p.holeAxis === 'y') poly = poly.map(([x, y]) => [y, x]).reverse();
+  const cs = new M.CrossSection([poly], 'Positive');
+  const ex = cs.extrude(T + 2); cs.delete();
+  const m = ex.translate([0, 0, -1]); ex.delete();
+  return m;
+}
+// a barrel is built (and exported) standing on end; on the cord it lies along the cord. Same meshes, turned 90°.
+function lyingView(it, p) {
+  const D = it.size.w, L = it.size.t, ay = p.holeAxis === 'y';
+  const f = m => {
+    const pos = new Float32Array(m.pos);
+    for (let i = 0; i < pos.length; i += 3) {
+      const x = pos[i], y = pos[i + 1], z = pos[i + 2];
+      if (ay) { pos[i + 1] = z - L / 2; pos[i + 2] = D / 2 - y; } else { pos[i] = z - L / 2; pos[i + 2] = D / 2 - x; }
+    }
+    return { ...m, pos };
+  };
+  const a = L / 2, b = D / 2;
+  return { body: f(it.body), letter: f(it.letter), accent: f(it.accent), holeZ: b,
+    bounds: ay ? { x0: -b, x1: b, y0: -a, y1: a } : { x0: -a, x1: a, y0: -b, y1: b },
+    size: ay ? { w: D, h: L, t: D } : { w: L, h: D, t: D } };
+}
+function holeSolid(p, L, T = p.thick) {
+  const r = p.holeD / 2, n = 48;
+  let poly = [];
+  const cap = T / 2 - 0.8; // never let the teardrop tip break through the top face
+  if (p.teardrop && cap > r * Math.SQRT1_2 + 0.05) {
+    for (let i = 0; i <= n; i++) { const th = (135 + i / n * 270) * Math.PI / 180; poly.push([r * Math.cos(th), r * Math.sin(th)]); }
+    const tip = r * Math.SQRT2;
+    if (tip <= cap) poly.push([0, tip]); else { const u = tip - cap; poly.push([u, cap], [-u, cap]); }
+  } else for (let i = 0; i < n; i++) { const th = i / n * 2 * Math.PI; poly.push([r * Math.cos(th), r * Math.sin(th)]); }
+  // face down: the bead is flipped on the plate, so the teardrop tip points at the back to end up pointing up
+  if (faceDown(p)) poly = poly.map(([x, y]) => [x, -y]).reverse();
+  // slot: the round/teardrop profile stretched sideways so two cords sit side by side (flat top bridges)
+  const half = p.holeShape === 'slot' ? Math.max(0, (p.holeW - p.holeD) / 2) : 0;
+  if (half > 0) poly = hull2d([...poly.map(([x, y]) => [x - half, y]), ...poly.map(([x, y]) => [x + half, y])]);
+  const cs = new M.CrossSection([poly], 'Positive');
+  const ex = cs.extrude(L); cs.delete();
+  // profile (u,v) extruded along w  ->  hole along X: (w, u, v) ; along Y: (-u, w, v). Both are proper rotations.
+  const m = p.holeAxis === 'x'
+    ? ex.warp(v => { const x = v[0], y = v[1], z = v[2]; v[0] = z - L / 2; v[1] = x; v[2] = y + T / 2; })
+    : ex.warp(v => { const x = v[0], y = v[1], z = v[2]; v[0] = -x; v[1] = z - L / 2; v[2] = y + T / 2; });
+  ex.delete();
+  return m;
+}
+function toMesh(m) {
+  if (!m) return { pos: new Float32Array(0), idx: new Uint32Array(0) };
+  const g = m.getMesh(), np = g.numProp, vp = g.vertProperties, nv = vp.length / np;
+  const pos = new Float32Array(nv * 3);
+  for (let i = 0; i < nv; i++) { pos[i * 3] = vp[i * np]; pos[i * 3 + 1] = vp[i * np + 1]; pos[i * 3 + 2] = vp[i * np + 2]; }
+  return { pos, idx: Uint32Array.from(g.triVerts) };
+}
+
+// glyph (clipper paths, centered) -> fitted to the bead face
+function fitGlyph(paths, p, bc) {
+  if (!paths.length) return paths;
+  const lim = p.diameter * p.fitPct / 200 * S;
+  let mx = 0;
+  for (const pp of paths) for (const q of pp)
+    mx = Math.max(mx, p.shape === 'square' || p.shape === 'cube' ? Math.max(Math.abs(q.X), Math.abs(q.Y)) : Math.hypot(q.X, q.Y));
+  let k = mx > lim ? lim / mx : 1;
+  const dy = p.letterY * S;
+  const at = k => paths.map(pp => pp.map(q => ({ X: Math.round(q.X * k), Y: Math.round(q.Y * k + dy) })));
+  // also shrink until the letter sits inside the flat face (matters for hearts and small beads)
+  const outside = g => diff(g, bc.inner).reduce((a, pp) => a + Math.abs(C.Clipper.Area(pp)), 0) / (S * S);
+  for (let i = 0; i < 40 && k > 0.2 && outside(at(k)) > 0.05; i++) k *= 0.96;
+  return at(k);
+}
+
+const EMPTY = { pos: new Float32Array(0), idx: new Uint32Array(0) };
+// plain extra bead (puck / heart / bow / cube) in the accent filament
+function buildDecor(kind, p, label) {
+  const bc = beadBody(p, kind);
+  const detail = decorDetail(kind, p, bc);
+  if (detail?.length) return buildBead(detail, p, label, kind);
+  const it = { name: label, body: EMPTY, letter: EMPTY, accent: toMesh(bc.body), painted: null,
+    size: { w: bc.bounds.x1 - bc.bounds.x0, h: bc.bounds.y1 - bc.bounds.y0, t: bc.T }, bounds: bc.bounds, holeZ: bc.T / 2, warnings: [] };
+  if (kind === 'barrel') it.cord = lyingView(it, p);
+  return it;
+}
+// kind other than main: an extra bead with markings; its body prints in the accent filament
+function buildBead(paths, p, label, kind = 'main') {
+  const bc = beadBody(p, kind), T = bc.T, bin = [];
+  const keep = x => (bin.push(x), x);
+  let body = bc.body, letter = null;
+  try {
+    if (paths.length) {
+      const cs = keep(new M.CrossSection(toPolys(paths), 'NonZero'));
+      if (p.letterMode === 'raised') {
+        letter = keep(keep(cs.extrude(p.raise)).translate([0, 0, T]));
+      } else {
+        const d = p.depth;
+        body = keep(body.subtract(keep(keep(cs.extrude(d + 1)).translate([0, 0, T - d]))));
+        if (p.letterMode === 'inlay') letter = keep(keep(keep(cs.extrude(d)).translate([0, 0, T - d])).intersect(bc.hull));
+        if (p.backLetter) {
+          // mirrored so it reads correctly after flipping the bead around the cord axis
+          const mir = p.holeAxis === 'y' ? paths.map(pp => pp.map(q => ({ X: -q.X, Y: q.Y })))
+                                         : paths.map(pp => pp.map(q => ({ X: q.X, Y: -q.Y })));
+          const cb = keep(new M.CrossSection(toPolys(mir), 'NonZero'));
+          body = keep(body.subtract(keep(keep(cb.extrude(d + 1)).translate([0, 0, -1]))));
+          if (p.letterMode === 'inlay') {
+            const lb = keep(keep(cb.extrude(d)).intersect(bc.hull));
+            letter = letter ? keep(letter.add(lb)) : lb;
+          }
+        }
+      }
+      if (letter && bc.hole) letter = keep(letter.subtract(bc.hole));
+    }
+    // single solid with per-triangle paint flag (1 = letter surface), for pre-painted 3MF
+    let painted = null;
+    if (letter) {
+      const bo = keep(body.asOriginal()), lo = keep(letter.asOriginal()), lid = lo.originalID();
+      const u = keep(bo.add(lo)), g = u.getMesh();
+      const mesh = toMesh(u), paint = new Uint8Array(mesh.idx.length / 3);
+      for (let r = 0; r < g.runOriginalID.length; r++)
+        if (g.runOriginalID[r] === lid) paint.fill(1, g.runIndex[r] / 3, g.runIndex[r + 1] / 3);
+      painted = { ...mesh, paint };
+    }
+    const bm = toMesh(body), extra = kind !== 'main';
+    return { name: label, body: extra ? EMPTY : bm, letter: toMesh(letter), accent: extra ? bm : EMPTY, painted,
+      size: { w: bc.bounds.x1 - bc.bounds.x0, h: bc.bounds.y1 - bc.bounds.y0, t: T + (p.letterMode === 'raised' && letter ? p.raise : 0) },
+      bounds: bc.bounds, holeZ: T / 2, warnings: [] };
+  } finally { for (const o of bin) o.delete(); }
+}
+
+/* name -> tokens: {type:'char'|'icon'|'blank'|'decor', value, label} */
+const DECOR = { blank: ['blank', 'Blank'], puck: ['puck', 'Puck'], barrel: ['barrel', 'Barrel'], 'heart-bead': ['heartbead', 'Heart bead'], heartbead: ['heartbead', 'Heart bead'], bow: ['bow', 'Bow'], cube: ['cube', 'Cube'], 'star-bead': ['starbead', 'Star bead'], starbead: ['starbead', 'Star bead'] };
+for (const [k, l] of Object.entries(SHAPES)) DECOR[k + '-bead'] = DECOR[k + 'bead'] = [k, l];
+DECOR['soccerball-bead'] = DECOR.soccer;
+// every bead token keeps its source text (src) and the non-bead text before it (gap), so the name can be rewritten after edits
+// per-bead colours, written after the bead in the name: A{#ff0000} (bead), A{#ff0000,#ffffff} (bead, letter), A{,#ffffff} (letter)
+const HEX = /^#[0-9a-f]{6}$/i;
+function parseMod(mod) {
+  const [b, l] = (mod || '').slice(1, -1).split(',');
+  const col = { body: HEX.test(b) ? b.toLowerCase() : undefined, letter: HEX.test(l) ? l.toLowerCase() : undefined };
+  return col.body || col.letter ? col : null;
+}
+const fmtMod = col => col?.body || col?.letter ? `{${col.body || ''}${col.letter ? ',' + col.letter : ''}}` : '';
+function tokenize(name, p) {
+  let out = [];
+  const warn = [];
+  let gap = '', line = 0;
+  // each line of the name is its own cord; the newline is kept in the gap before the next bead so edits keep it
+  const add = tk => { tk.src = tk.src ?? ''; tk.mod = ''; tk.gap = gap; tk.line = line; gap = ''; out.push(tk); };
+  const re = /\[([^\]]*)\]|(\s)|(\{[#0-9a-fA-F,]*\})|(.)/gsu;
+  for (const m of name.matchAll(re)) {
+    if (m[3] !== undefined) { // colour modifier: belongs to the bead right before it
+      const last = out[out.length - 1];
+      if (last && !gap && !last.mod) { last.mod = m[3]; last.col = parseMod(m[3]); } else gap += m[3];
+      continue;
+    }
+    if (m[1] !== undefined) {
+      const d = DECOR[m[1].toLowerCase().trim()];
+      if (d) { add(d[0] === 'blank' ? { type: 'blank', label: 'Blank', src: m[0] } : { type: 'decor', value: d[0], label: d[1], src: m[0] }); continue; }
+      const e = findIcon(m[1]);
+      if (e) add({ type: 'icon', value: e, label: e[1], src: m[0] }); else { warn.push(`No bead or icon is called [${m[1]}]: check the spelling, or pick one under Spacer beads.`); gap += m[0]; }
+    } else if (m[2] === '\n') { gap += m[0]; if (out.length && out[out.length - 1].line === line) line++; }
+    else if (m[2] === '\r') gap += m[0];
+    else if (m[2]) { if (p.blankSpace) add({ type: 'blank', label: 'Blank', src: m[0] }); else gap += m[0]; }
+    else if (/[\u2665\u2764]/.test(m[4])) add({ type: 'decor', value: 'heartbead', label: 'Heart bead', src: m[0] });
+    else if (/[\u2605\u2606]/.test(m[4])) add({ type: 'decor', value: 'starbead', label: 'Star bead', src: m[0] });
+    else if (/[\uFE0E\uFE0F\u200D]/.test(m[4])) { if (out.length && !gap) out[out.length - 1].src += m[0]; else gap += m[0]; } // emoji variation selectors and joiners are not beads
+    else { const ch = p.upper ? m[4].toUpperCase() : m[4]; add({ type: 'char', value: ch, label: ch, src: m[0] }); }
+  }
+  let k = 0;
+  for (const tk of out) tk.ri = k++;
+  if (p.spacerPuck && out.length > 1) {
+    const isPuck = t => t.type === 'decor' && t.value === 'puck', sp = [];
+    out.forEach((t, i) => { if (i && t.line === out[i - 1].line && !isPuck(t) && !isPuck(out[i - 1])) sp.push({ type: 'decor', value: 'puck', label: 'Puck spacer', auto: true, line: t.line }); sp.push(t); });
+    out = sp;
+  }
+  return { tokens: out, warn, trailing: gap };
+}
+
+/* ---------------- preview ---------------- */
+const view = $('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // transparent: the page gradient shows behind the beads
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+view.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+// build plate: free 3D perspective camera. On cord: fixed isometric view from the front (orthographic, 60° down)
+const perspCam = new THREE.PerspectiveCamera(35, 1, 0.1, 5000);
+perspCam.up.set(0, 0, 1);
+const isoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, -5000, 5000);
+isoCam.up.set(0, 0, 1);
+let camera = perspCam;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.minZoom = 0.2; controls.maxZoom = 25;
+const calm = matchMedia('(prefers-reduced-motion: reduce)'); // no easing or glide for people who ask for less motion
+controls.enableDamping = !calm.matches;
+calm.addEventListener?.('change', () => controls.enableDamping = !calm.matches);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444455, 1.3));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(60, -80, 140); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(-80, 60, 40); scene.add(fill);
+const modelGroup = new THREE.Group(); scene.add(modelGroup);
+const matBody = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.55 });
+const matLetter = new THREE.MeshStandardMaterial({ color: 0x1c1c1f, roughness: 0.5 });
+const matAccent = new THREE.MeshStandardMaterial({ color: 0xd64545, roughness: 0.55 });
+const matCord = new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.8 });
+function meshGeo(m) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(m.pos, 3));
+  g.setIndex(new THREE.BufferAttribute(m.idx, 1));
+  const flat = g.toNonIndexed(); g.dispose(); flat.computeVertexNormals();
+  return flat;
+}
+// settings tabs in the top bar: click a tab to show its pane, click the open tab (or ▴) to hide the panel
+function showTab(id) {
+  const app = $('app'), cur = app.classList.contains('collapsed') ? null : app.dataset.tab;
+  if (id && id === cur) id = null;
+  app.classList.toggle('collapsed', !id);
+  if (id) app.dataset.tab = id;
+  document.querySelectorAll('#tabs [data-tab]').forEach(b => {
+    b.classList.toggle('on', b.dataset.tab === id); b.setAttribute('aria-selected', b.dataset.tab === id);
+    b.tabIndex = b.dataset.tab === (id || app.dataset.tab || 'bead') ? 0 : -1; // roving tabindex: one tab stop, arrows move between tabs
+  });
+  document.querySelectorAll('.pane').forEach(s => s.hidden = s.dataset.tab !== id);
+  document.querySelector('#tabs .on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); // phone: the tab strip scrolls sideways
+  try { localStorage.setItem('strung.tab', id || ''); } catch {}
+}
+document.querySelectorAll('#tabs [data-tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+$('tabHide').addEventListener('click', () => showTab(null));
+{ // tab semantics: each tab names its pane; Left/Right/Home/End move between tabs and open them
+  const tabs = [...document.querySelectorAll('#tabs [data-tab]')];
+  for (const b of tabs) {
+    const pane = document.querySelector(`.pane[data-tab="${b.dataset.tab}"]`);
+    b.id = 'tab-' + b.dataset.tab; pane.id = 'pane-' + b.dataset.tab;
+    b.setAttribute('aria-controls', pane.id); pane.setAttribute('aria-labelledby', b.id);
+  }
+  $('tabs').addEventListener('keydown', ev => {
+    const i = tabs.indexOf(ev.target); if (i < 0 || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const n = tabs.length, j = ev.key === 'ArrowRight' ? (i + 1) % n : ev.key === 'ArrowLeft' ? (i + n - 1) % n : ev.key === 'Home' ? 0 : ev.key === 'End' ? n - 1 : -1;
+    if (j < 0) return;
+    ev.preventDefault();
+    if (!tabs[j].classList.contains('on')) showTab(tabs[j].dataset.tab);
+    tabs[j].focus();
+  });
+}
+$('exp3mfTop').addEventListener('click', () => $('exp3mf').click());
+{ let t0 = 'bead'; try { const s = localStorage.getItem('strung.tab'); if (s !== null) t0 = s; } catch {} showTab(t0 || null); }
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false);
+  perspCam.aspect = w / h; perspCam.updateProjectionMatrix(); isoFrustum();
+}
+function useCamera(cam) {
+  if (camera === cam) return;
+  camera = cam; controls.object = cam;
+  controls.enableRotate = true; controls.zoomToCursor = cam === isoCam;
+  clearTimeout(isoTimer); isoAnim = null;
+  resize();
+}
+// isometric fit: frustum sized so zoom 1 shows the whole width (and height) of the cords
+const ISO_EL = Math.PI / 3; // 60° down: much steeper than true isometric (35.26°), so the faces read better
+let isoFit = null;
+function isoFrustum() {
+  if (!isoFit) return;
+  const aspect = view.clientWidth / Math.max(1, view.clientHeight);
+  const hh = Math.max(isoFit.H / 2, isoFit.W / 2 / aspect) * 1.08 + 3;
+  Object.assign(isoCam, { left: -hh * aspect, right: hh * aspect, top: hh, bottom: -hh });
+  isoCam.updateProjectionMatrix();
+}
+function fitIso(force = false) {
+  const box = new THREE.Box3().setFromObject(modelGroup); if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  const W = s.x, H = s.y * Math.sin(ISO_EL) + s.z * Math.cos(ISO_EL);
+  // keep the user's zoom and pan while the cords keep their size (e.g. changing a colour); refit when they grow or shrink
+  if (!force && isoFit && Math.abs(W - isoFit.W) < 0.5 && Math.abs(H - isoFit.H) < 0.5) return;
+  isoFit = { W, H };
+  isoFrustum();
+  isoCam.zoom = 1; isoCam.updateProjectionMatrix();
+  controls.target.copy(c);
+  isoCam.position.copy(c).add(new THREE.Vector3(0, -Math.cos(ISO_EL), Math.sin(ISO_EL)).multiplyScalar(1000));
+  isoCam.lookAt(c);
+}
+// on-cord view: drag to look around; 10 s after letting go it eases back to the isometric angle (zoom and pan are kept)
+const ISO_DIR = new THREE.Vector3(0, -Math.cos(ISO_EL), Math.sin(ISO_EL));
+let isoTimer = null, isoAnim = null;
+const isoDir = () => isoCam.position.clone().sub(controls.target).normalize();
+controls.addEventListener('start', () => { clearTimeout(isoTimer); isoAnim = null; });
+controls.addEventListener('end', () => {
+  if (camera !== isoCam || isoDir().angleTo(ISO_DIR) < 1e-3) return;
+  isoTimer = setTimeout(() => { isoAnim = { from: isoDir(), t0: performance.now() }; }, 10000);
+});
+function stepIsoAnim() {
+  if (!isoAnim || camera !== isoCam) return;
+  const k = calm.matches ? 1 : Math.min(1, (performance.now() - isoAnim.t0) / 800), e = k * k * (3 - 2 * k);
+  const dist = isoCam.position.distanceTo(controls.target);
+  isoCam.position.copy(controls.target).addScaledVector(isoAnim.from.clone().lerp(ISO_DIR, e).normalize(), dist);
+  isoCam.lookAt(controls.target);
+  if (k === 1) isoAnim = null;
+}
+// +/- keys and the wheel: zoom; 0: fit
+function zoomBy(f) {
+  if (camera === isoCam) { isoCam.zoom = Math.min(25, Math.max(0.2, isoCam.zoom * f)); isoCam.updateProjectionMatrix(); }
+  else camera.position.sub(controls.target).divideScalar(f).add(controls.target);
+}
+const modalOpen = () => !!document.querySelector('dialog[open]');
+addEventListener('keydown', ev => {
+  if (ev.ctrlKey || ev.metaKey || ev.altKey || modalOpen() || /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) return;
+  if (ev.key === '+' || ev.key === '=') zoomBy(1.25);
+  else if (ev.key === '-' || ev.key === '_') zoomBy(0.8);
+  else if (ev.key === '0') fitCurrent();
+  else return;
+  ev.preventDefault();
+});
+const fitCurrent = () => viewMode === 'strung' ? fitIso(true) : fitView('persp', true);
+new ResizeObserver(resize).observe(view);
+(function loop() { requestAnimationFrame(loop); stepIsoAnim(); controls.update(); renderer.render(scene, camera); })();
+let lastFitSize = 0, viewMode = 'strung';
+try { viewMode = localStorage.getItem('strung.view') === 'plate' ? 'plate' : 'strung'; } catch {}
+function fitView(mode = 'persp', force = false) {
+  const box = new THREE.Box3().setFromObject(modelGroup); if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  const R = Math.max(s.x, s.y, 20);
+  if (!force && Math.abs(R - lastFitSize) / R < 0.25) return;
+  lastFitSize = R;
+  const d = R / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.2;
+  controls.target.copy(c);
+  if (mode === 'top') camera.position.set(c.x, c.y - 0.001, c.z + d);
+  else if (mode === 'front') camera.position.set(c.x, c.y - d, c.z + 0.001);
+  else camera.position.set(c.x - d * 0.2, c.y - d * 0.75, c.z + d * 0.65);
+  camera.lookAt(c);
+}
+// screenshot: snap to the default view, then render the model cropped to its width. A single cord would give a thin
+// strip, so the picture is four times as tall as the model (up to 4:3), with the model centred.
+function screenshot() {
+  const box = new THREE.Box3().setFromObject(modelGroup); if (box.isEmpty()) return status('Nothing to take a picture of yet: type a name in the box at the top first.', true);
+  clearTimeout(isoTimer); isoAnim = null;
+  const sel = selected; selected = null; showSelection();
+  fitCurrent(); controls.update(); camera.updateMatrixWorld();
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  // screen extent from each object's own box: the corners of one box around everything overshoot in perspective
+  modelGroup.updateMatrixWorld(true);
+  modelGroup.traverse(o => {
+    if (!o.geometry || !o.visible) return;
+    if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+    const bb = o.geometry.boundingBox;
+    for (let i = 0; i < 8; i++) {
+      const v = new THREE.Vector3(i & 1 ? bb.max.x : bb.min.x, i & 2 ? bb.max.y : bb.min.y, i & 4 ? bb.max.z : bb.min.z).applyMatrix4(o.matrixWorld).project(camera);
+      x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y);
+    }
+  });
+  const aspect = view.clientWidth / Math.max(1, view.clientHeight);
+  const cw = (x1 - x0) * 1.06, ch = (y1 - y0) / aspect; // both in units of half the view width
+  const hh = Math.min(ch * 4, Math.max(ch * 1.08, cw * 0.75));
+  const W = 2400, k = W / cw, H = Math.round(hh * k), fullW = 2 * k, fullH = fullW / aspect;
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  camera.setViewOffset(fullW, fullH, (cx + 1) / 2 * fullW - W / 2, (1 - cy) / 2 * fullH - H / 2, W, H);
+  renderer.setPixelRatio(1); renderer.setSize(W, H, false);
+  renderer.render(scene, camera);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  // same backdrop as the preview
+  ctx.translate(W / 2, H * 0.4); ctx.scale(W / 2, H / 2);
+  const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, 1.45);
+  gr.addColorStop(0, '#3b4358'); gr.addColorStop(0.55, '#262b38'); gr.addColorStop(1, '#1a1d26');
+  ctx.fillStyle = gr; ctx.fillRect(-1, -1, 2, 2.4);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(renderer.domElement, 0, 0);
+  camera.clearViewOffset(); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); resize();
+  selected = sel; showSelection();
+  cv.toBlob(b => {
+    if (!b) return status('Could not make the screenshot.', true);
+    shotBlob = b;
+    URL.revokeObjectURL($('shotImg').src);
+    $('shotImg').src = URL.createObjectURL(b);
+    $('shotCopy').textContent = 'Copy';
+    $('shotDlg').showModal();
+  }, 'image/png');
+}
+// the screenshot opens in a window on the page, with buttons to copy it to the clipboard or download it
+let shotBlob = null;
+$('shot').onclick = screenshot;
+$('shotClose').onclick = () => $('shotDlg').close();
+$('shotDlg').onclick = ev => { // click outside the window
+  const r = $('shotDlg').getBoundingClientRect();
+  if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) $('shotDlg').close();
+};
+// the same for every window: Close button, click outside, Esc
+for (const d of document.querySelectorAll('dialog')) d.addEventListener('keydown', ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); d.close(); } }); // stop: Esc closes the window, not the bead editor behind it
+const openHelp = () => { $('helpDlg').showModal(); $('helpDlg').scrollTop = 0; }; // focus lands on Close at the bottom: start at the top
+$('helpBtn').onclick = openHelp;
+$('helpClose').onclick = () => $('helpDlg').close();
+$('helpDlg').onclick = ev => { // click outside the window
+  const r = $('helpDlg').getBoundingClientRect();
+  if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) $('helpDlg').close();
+};
+// ?: shortcut help
+addEventListener('keydown', ev => {
+  if (ev.key !== '?' || ev.ctrlKey || ev.metaKey || ev.altKey || /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) return;
+  if ($('helpDlg').open) $('helpDlg').close(); else if (!modalOpen()) openHelp(); else return;
+  ev.preventDefault();
+});
+$('shotSave').onclick = () => shotBlob && download(shotBlob, fname(built.p) + '.png');
+$('shotCopy').onclick = async () => {
+  try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': shotBlob })]); $('shotCopy').textContent = 'Copied'; }
+  catch (e) { console.error(e); $('shotCopy').textContent = 'Copy failed'; }
+};
+document.querySelectorAll('#viewbtns [data-v]').forEach(b => b.onclick = () => b.dataset.v === 'fit' ? fitCurrent() : fitView(b.dataset.v, true));
+function setViewMode(mode) {
+  viewMode = mode; lastFitSize = 0; isoFit = null;
+  useCamera(mode === 'strung' ? isoCam : perspCam);
+  document.querySelectorAll('#viewbtns [data-v]').forEach(b => b.hidden = mode === 'strung' && b.dataset.v !== 'fit');
+  try { localStorage.setItem('strung.view', mode); } catch {}
+  document.querySelectorAll('#modebtns [data-mode]').forEach(x => { x.classList.toggle('on', x.dataset.mode === mode); x.setAttribute('aria-pressed', x.dataset.mode === mode); });
+}
+document.querySelectorAll('#modebtns [data-mode]').forEach(b => b.onclick = () => { setViewMode(b.dataset.mode); rebuild(); });
+setViewMode(viewMode);
+
+/* ---------------- bead picking, drag to reorder, edit panel ---------------- */
+const exclMat = new THREE.MeshStandardMaterial({ color: 0xb03a3a, roughness: 0.9 });
+const towerMat = new THREE.MeshStandardMaterial({ color: 0x8a8f9c, transparent: true, opacity: 0.35, depthWrite: false });
+const plateMat = new THREE.MeshStandardMaterial({ color: 0x2b2e36, roughness: 0.9 }), plateEdgeMat = new THREE.LineBasicMaterial({ color: 0x1f9e8f });
+let beadGroups = [], selected = null, drag = null, downAt = null;
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function aim(ev) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set((ev.clientX - r.left) / r.width * 2 - 1, -(ev.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+}
+function pickBead(ev) {
+  aim(ev);
+  const hit = ray.intersectObjects(beadGroups, true)[0];
+  let o = hit?.object;
+  while (o && !o.userData.bead) o = o.parent;
+  return o || null;
+}
+function planeLocal(ev, z) { // pointer on a horizontal plane, in modelGroup coordinates
+  aim(ev);
+  const pt = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 0, 1), -z), new THREE.Vector3());
+  return pt ? pt.sub(modelGroup.position) : null;
+}
+const colMats = new Map(); // materials for per-bead colours
+function colMat(base, hex) {
+  if (!hex) return base;
+  if (!colMats.has(hex)) { const m = base.clone(); m.color.set(hex); colMats.set(hex, m); }
+  return colMats.get(hex);
+}
+const selMats = new Map();
+function selMat(mat) {
+  if (!selMats.has(mat)) { const m = mat.clone(); m.emissive = new THREE.Color(0x2cc2b0); m.emissiveIntensity = 0.35; selMats.set(mat, m); }
+  const m = selMats.get(mat); m.color.copy(mat.color); return m;
+}
+function realTokens() { return (built?.tokens || []).filter(t => !t.auto); }
+function showSelection() {
+  const real = realTokens();
+  if (selected != null && selected >= real.length) selected = null;
+  for (const g of beadGroups) {
+    const on = selected != null && g.userData.ri === selected && !g.userData.auto;
+    for (const m of g.children) m.material = on ? selMat(m.userData.mat) : m.userData.mat;
+  }
+  const panel = $('beadPanel');
+  if (selected == null) { panel.hidden = true; return; }
+  const tk = real[selected];
+  panel.hidden = false;
+  const nl = new Set(real.map(t => t.line)).size, inLine = real.filter(t => t.line === tk.line), k = inLine.indexOf(tk);
+  $('bpTitle').textContent = nl > 1
+    ? `Cord ${[...new Set(real.map(t => t.line))].indexOf(tk.line) + 1}, bead ${k + 1} of ${inLine.length}: ${tk.label}`
+    : `Bead ${selected + 1} of ${real.length}: ${tk.label}`;
+  if (document.activeElement !== $('bpText')) $('bpText').value = tk.src;
+  const bp = built.p, it = built.items[built.tokens.indexOf(tk)], hasLetter = !!it?.letter.idx.length;
+  $('bpBody').value = tk.col?.body || (tk.type === 'decor' ? bp.accentColor : bp.beadColor);
+  $('bpLetter').value = tk.col?.letter || bp.letterColor;
+  $('bpLetter').disabled = !hasLetter; $('bpColReset').disabled = !tk.col;
+  $('bpColInfo').textContent = it ? `Filament slot: bead ${partExt(it, baseKey(it), bp)}` + (hasLetter ? `, ${tk.type === 'decor' ? 'marking' : 'letter'} ${partExt(it, 'letter', bp)}` : '') + (tk.col ? ' (own colour)' : '') : '';
+  $('bpLeft').disabled = selected === 0; $('bpRight').disabled = selected === real.length - 1;
+}
+// rewrite the name from a new list of beads {src, line}: each line (cord) keeps its line break, and non-bead text
+// (spaces) stays at the same positions within its line
+function writeName(beads, sel) {
+  const real = realTokens(), lineGaps = new Map(), sep = new Map();
+  for (const t of real) {
+    const nl = t.gap.lastIndexOf('\n');
+    if (!lineGaps.has(t.line)) { lineGaps.set(t.line, []); sep.set(t.line, t.gap.slice(0, nl + 1)); }
+    lineGaps.get(t.line).push(t.gap.slice(nl + 1));
+  }
+  const order = beads.map((b, i) => i).sort((a, b) => beads[a].line - beads[b].line || a - b);
+  let s = '', prev = null, k = 0;
+  for (const i of order) {
+    const b = beads[i];
+    if (b.line !== prev) { if (prev !== null) s += sep.get(b.line) || '\n'; prev = b.line; k = 0; }
+    s += (lineGaps.get(b.line)?.[k++] ?? '') + b.src + (b.mod || '');
+  }
+  s += built.trailing || '';
+  selected = sel == null ? null : order.indexOf(sel);
+  $('name').value = s;
+  onChange('name');
+  snap(); // a bead edit is its own undo step
+}
+function editBeads(fn) {
+  const beads = realTokens().map(t => ({ src: t.src, mod: t.mod, line: t.line }));
+  const sel = fn(beads);
+  writeName(beads, sel == null || !beads.length ? null : Math.max(0, Math.min(sel, beads.length - 1)));
+}
+// the moved bead joins the cord of the bead whose place it takes
+const moveBead = (from, to) => editBeads(s => { const line = s[to].line, [x] = s.splice(from, 1); x.line = line; s.splice(to, 0, x); return to; });
+
+// ---- bead picker: 2D thumbnails of the real outlines, click to add or drag onto the cord ----
+const pathD = paths => paths.map(pp => 'M' + pp.map(q => (q.X / S).toFixed(2) + ' ' + (q.Y / S).toFixed(2)).join('L') + 'Z').join('');
+function thumbSvg(tok, p) {
+  const d = DECOR[tok.slice(1, -1)], blank = d[0] === 'blank', kind = blank ? 'main' : d[0];
+  let outline;
+  if (kind === 'barrel') {
+    // side view, lying along the cord
+    const r = Math.min(p.edgeSize, p.barrelD / 4, p.barrelL / 2 - 0.05), a = (p.barrelL / 2 - r) * S, c = (p.barrelD / 2 - r) * S;
+    const [hx, hy] = p.holeAxis === 'y' ? [c, a] : [a, c];
+    outline = offset([[{ X: -hx, Y: -hy }, { X: hx, Y: -hy }, { X: hx, Y: hy }, { X: -hx, Y: hy }].map(q => ({ X: Math.round(q.X), Y: Math.round(q.Y) }))], r);
+  } else outline = union(shapeParts(p, kind).parts.flat());
+  const b = bounds(outline);
+  const e = Math.max(0, Math.min(kind === 'cube' ? p.cornerR : p.edgeSize, Math.min(b.x1 - b.x0, b.y1 - b.y0) / 4, SHAPES[kind] ? shapeW(p) * 0.05 : Infinity));
+  const detail = blank ? null : decorDetail(kind, p, { outline, inner: offset(outline, -(e + (SHAPES[kind] ? 0.4 : 1))) });
+  const side = Math.max(b.x1 - b.x0, b.y1 - b.y0) * 1.08, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+  return `<svg viewBox="${(cx - side / 2).toFixed(2)} ${(-cy - side / 2).toFixed(2)} ${side.toFixed(2)} ${side.toFixed(2)}" aria-hidden="true"><g transform="scale(1,-1)">`
+    + `<path d="${pathD(outline)}" fill="var(${blank ? '--c-bead' : '--c-accent'})" stroke="#0008" stroke-width="${(side / 60).toFixed(2)}"/>`
+    + (detail?.length ? `<path d="${pathD(detail)}" fill="var(--c-letter)"/>` : '') + '</g></svg>';
+}
+let thumbKey = '';
+function updateThumbs(p) {
+  const rs = document.documentElement.style;
+  rs.setProperty('--c-bead', p.beadColor); rs.setProperty('--c-letter', p.letterColor); rs.setProperty('--c-accent', p.accentColor);
+  const key = JSON.stringify([p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.edgeSize, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.decorArt, p.holeAxis, p.holeShape, p.holeD, p.holeW]);
+  if (key === thumbKey) return;
+  thumbKey = key;
+  document.querySelectorAll('[data-ins], [data-bp]').forEach(b => {
+    const tok = b.dataset.ins || b.dataset.bp;
+    if (!b.dataset.label) { b.dataset.label = b.textContent.trim(); b.title = b.dataset.label; b.setAttribute('aria-label', b.dataset.label); b.classList.add('thumb'); }
+    try { b.innerHTML = thumbSvg(tok, p); } catch (e) { console.error(e); b.textContent = b.dataset.label; }
+  });
+}
+// where a dragged picker bead would land: before or after the nearest bead on its cord
+const dropMark = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x2cc2b0 }));
+dropMark.visible = false; scene.add(dropMark);
+function dropSlot(ev) {
+  if (!built || document.elementFromPoint(ev.clientX, ev.clientY) !== renderer.domElement) return null;
+  const real = beadGroups.filter(o => !o.userData.auto);
+  if (!real.length) return { at: 0, line: 0 };
+  const T = built.p.thick, pt = planeLocal(ev, built.items[0]?.holeZ ?? T / 2);
+  if (!pt) return null;
+  let best = null, bd = Infinity;
+  for (const o of real) { const d = Math.hypot(o.userData.home.x - pt.x, o.userData.home.y - pt.y); if (d < bd) { bd = d; best = o; } }
+  const h = best.userData.home, vert = viewMode === 'strung' && built.p.holeAxis === 'y';
+  const after = vert ? pt.y < h.y : pt.x > h.x, sg = after ? 1 : -1, { sw, sh } = best.userData;
+  const mark = vert ? { pos: [h.x, h.y - sg * (sh / 2 + 1), T / 2], scale: [sw + 8, 1.5, T + 6] } : { pos: [h.x + sg * (sw / 2 + 1), h.y, T / 2], scale: [1.5, sh + 8, T + 6] };
+  return { at: best.userData.ri + (after ? 1 : 0), line: realTokens()[best.userData.ri]?.line ?? 0, mark };
+}
+let pal = null;
+const palEnd = () => { pal?.ghost?.remove(); pal = null; dropMark.visible = false; };
+document.querySelectorAll('[data-ins]').forEach(b => {
+  b.addEventListener('pointerdown', ev => { if (ev.button !== 0) return; pal = { b, x: ev.clientX, y: ev.clientY, ghost: null }; b.setPointerCapture(ev.pointerId); });
+  b.addEventListener('pointermove', ev => {
+    if (!pal || pal.b !== b) return;
+    if (!pal.ghost) {
+      if (Math.hypot(ev.clientX - pal.x, ev.clientY - pal.y) < 6) return;
+      pal.ghost = document.createElement('div'); pal.ghost.id = 'palGhost'; pal.ghost.innerHTML = b.innerHTML; document.body.append(pal.ghost);
+    }
+    pal.ghost.style.left = ev.clientX + 'px'; pal.ghost.style.top = ev.clientY + 'px';
+    const slot = dropSlot(ev);
+    dropMark.visible = !!slot?.mark;
+    if (slot?.mark) { dropMark.position.set(...slot.mark.pos).add(modelGroup.position); dropMark.scale.set(...slot.mark.scale); }
+  });
+  b.addEventListener('pointerup', ev => {
+    if (!pal || pal.b !== b) return;
+    const dragged = !!pal.ghost, slot = dragged ? dropSlot(ev) : null;
+    palEnd();
+    if (!dragged) return; // plain click: handled by onclick
+    b.dataset.dragged = '1'; // swallow the click that follows the drop
+    setTimeout(() => delete b.dataset.dragged, 0);
+    if (slot) editBeads(s => { s.splice(slot.at, 0, { src: b.dataset.ins, line: slot.line }); return null; });
+  });
+  b.addEventListener('pointercancel', palEnd);
+});
+
+const cv = renderer.domElement;
+cv.addEventListener('pointerdown', ev => {
+  downAt = [ev.clientX, ev.clientY];
+  if (ev.button !== 0) return;
+  const g = pickBead(ev);
+  if (!g) return;
+  controls.enabled = false; // grabbing a bead: no orbit
+  const pt = planeLocal(ev, built.items[0]?.holeZ ?? built.p.thick / 2);
+  drag = { g, moved: false, off: pt ? g.position.clone().sub(pt) : new THREE.Vector3() };
+  cv.setPointerCapture(ev.pointerId);
+}, { capture: true });
+cv.addEventListener('pointermove', ev => {
+  if (!drag) { cv.style.cursor = pickBead(ev) ? 'grab' : ''; return; }
+  if (!drag.moved && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) < 5) return;
+  if (drag.g.userData.auto) return; // auto spacers are not movable
+  drag.moved = true; cv.style.cursor = 'grabbing';
+  const pt = planeLocal(ev, built.items[0]?.holeZ ?? built.p.thick / 2);
+  if (pt) drag.g.position.set(pt.x + drag.off.x, pt.y + drag.off.y, 4);
+});
+cv.addEventListener('pointerup', ev => {
+  const click = downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) < 5;
+  if (drag) {
+    const { g, moved } = drag; drag = null; controls.enabled = true; cv.style.cursor = '';
+    if (!moved) { selected = g.userData.auto ? null : g.userData.ri; if (g.userData.auto) status('This puck is added automatically. To edit pucks one by one, untick "Puck spacer between every bead" under Spacer beads.'); showSelection(); return; }
+    // drop: take the slot of the nearest other real bead
+    let best = null, bd = Infinity;
+    for (const o of beadGroups) {
+      if (o === g || o.userData.auto) continue;
+      const d = o.userData.home.distanceTo(new THREE.Vector3(g.position.x, g.position.y, 0));
+      if (d < bd) { bd = d; best = o; }
+    }
+    const from = g.userData.ri, to = best ? best.userData.ri : from;
+    if (to !== from) moveBead(from, to); else { g.position.copy(g.userData.home); }
+    return;
+  }
+  if (click && ev.button === 0) { selected = null; showSelection(); }
+});
+$('bpClose').onclick = () => { selected = null; showSelection(); };
+$('bpText').addEventListener('change', () => editBeads(s => {
+  const v = $('bpText').value;
+  if (v.trim()) { s[selected].src = v; return selected; }
+  s.splice(selected, 1); return null;
+}));
+const setBeadCol = (which, v) => editBeads(s => { const b = s[selected], c = parseMod(b.mod) || {}; c[which] = v.toLowerCase(); b.mod = fmtMod(c); return selected; });
+$('bpBody').onchange = ev => setBeadCol('body', ev.target.value);
+$('bpLetter').onchange = ev => setBeadCol('letter', ev.target.value);
+$('bpColReset').onclick = () => editBeads(s => { s[selected].mod = ''; return selected; });
+document.querySelectorAll('[data-bp]').forEach(b => b.onclick = () => editBeads(s => { s[selected].src = b.dataset.bp; return selected; }));
+for (const [id, label] of ICONS) $('bpIcon').add(new Option(label, '[' + id + ']'));
+$('bpIcon').onchange = () => { const v = $('bpIcon').value; $('bpIcon').value = ''; if (v) editBeads(s => { s[selected].src = v; return selected; }); };
+$('bpLeft').onclick = () => selected > 0 && moveBead(selected, selected - 1);
+$('bpRight').onclick = () => selected < realTokens().length - 1 && moveBead(selected, selected + 1);
+$('bpDup').onclick = () => editBeads(s => { s.splice(selected + 1, 0, { ...s[selected] }); return selected + 1; });
+$('bpDel').onclick = () => editBeads(s => { s.splice(selected, 1); return selected < s.length ? selected : s.length - 1; });
+addEventListener('keydown', ev => {
+  if (selected == null || modalOpen() || /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) return;
+  if (ev.key === 'Escape') { selected = null; showSelection(); }
+  else if (ev.target?.tagName === 'BUTTON') return; // a focused button keeps its own keys (tabs use the arrows)
+  else if (ev.key === 'Delete' || ev.key === 'Backspace') $('bpDel').click();
+  else if (ev.key === 'ArrowLeft') $('bpLeft').click();
+  else if (ev.key === 'ArrowRight') $('bpRight').click();
+});
+
+/* ---------------- layout, plate, export (shared with keychain generator) ---------------- */
+// part key, display name, extruder param, colour param
+const PARTS = [['body', 'Bead', 'beadExt', 'beadColor'], ['letter', 'Letter', 'letterExt', 'letterColor'], ['accent', 'Spacer bead', 'accentExt', 'accentColor']];
+// colour and filament slot of one part of a bead. A bead's own colour reuses the slot of a matching colour from the
+// Colours tab; any other colour gets the next free slot (extraSlots, in name order).
+const partRole = key => key === 'letter' ? 1 : key === 'accent' ? 2 : 0;
+const ownColor = (it, key) => key === 'letter' ? it.col?.letter : it.col?.body;
+const globalPart = (hex, p) => PARTS.findIndex(d => String(p[d[3]]).toLowerCase() === hex);
+let extraSlots = new Map();
+function assignSlots(items, p) {
+  extraSlots = new Map();
+  const taken = new Set([p.beadExt, p.letterExt, p.accentExt]);
+  let n = 1;
+  for (const it of items) for (const c of [it.col?.body, it.col?.letter]) {
+    if (!c || extraSlots.has(c) || globalPart(c, p) >= 0) continue;
+    while (taken.has(n)) n++;
+    taken.add(n); extraSlots.set(c, n);
+  }
+}
+function partExt(it, key, p) {
+  const c = ownColor(it, key);
+  if (!c) return p[PARTS[partRole(key)][2]];
+  const g = globalPart(c, p);
+  return g >= 0 ? p[PARTS[g][2]] : extraSlots.get(c) ?? 1;
+}
+// index into the 3MF base materials: the three PARTS, then one per extra colour
+function partMat(it, key, p) {
+  const c = ownColor(it, key);
+  if (!c) return partRole(key);
+  const g = globalPart(c, p);
+  return g >= 0 ? g : 3 + [...extraSlots.keys()].indexOf(c);
+}
+const baseKey = it => isExtra(it) ? 'accent' : 'body';
+function plateSize(p) {
+  if (p.plate === 'none') return null;
+  if (p.plate === 'custom') return { w: p.plateW, d: p.plateD };
+  const e = PLATES.find(x => x[0] === p.plate);
+  return e ? { w: e[2], d: e[3] } : null;
+}
+
+// how many uniform cells fit on the plate (optionally rotated 90°)
+function plateCapacity(cellW, cellH, p, reserveY = 0, reserveX = 0) {
+  const pl = plateSize(p); if (!pl) return null;
+  const g = p.batchGap, m = p.plateMargin;
+  const fit = (w, h) => {
+    const cols = Math.floor((pl.w - reserveX - 2 * m + g) / (w + g)), rows = Math.floor((pl.d - reserveY - 2 * m + g) / (h + g));
+    return { cols: Math.max(0, cols), rows: Math.max(0, rows), n: Math.max(0, cols) * Math.max(0, rows), w, h };
+  };
+  const a = fit(cellW, cellH), b = p.allowRot ? fit(cellH, cellW) : { n: -1 };
+  return b.n > a.n ? { ...b, rot: true, plate: pl } : { ...a, rot: false, plate: pl };
+}
+
+// expand names × clones
+function withClones(items, p) {
+  const n = Math.max(1, Math.floor(p.clones) || 1), out = [], fd = faceDown(p);
+  for (const it of items) for (let i = 0; i < n; i++) out.push(fd ? flipped(it) : it);
+  return out;
+}
+// item turned over for face-down printing: rotated 180° about Y, (x, y, z) -> (-x, y, t - z)
+const flipCache = new WeakMap();
+function flipped(it) {
+  if (flipCache.has(it)) return flipCache.get(it);
+  const t = it.size.t;
+  const f = m => {
+    const pos = new Float32Array(m.pos);
+    for (let i = 0; i < pos.length; i += 3) { pos[i] = -pos[i]; pos[i + 2] = t - pos[i + 2]; }
+    return { ...m, pos };
+  };
+  const b = it.bounds;
+  const out = { ...it, body: f(it.body), letter: f(it.letter), accent: f(it.accent), painted: it.painted && f(it.painted),
+    bounds: { ...b, x0: -b.x1, x1: -b.x0 } };
+  flipCache.set(it, out);
+  return out;
+}
+
+/* ---------------- Bambu Studio project (printer / process / filament presets from bambu-profiles.js) ---------------- */
+const BBL_AUTO = { a1mini: 'a1mini', a1: 'a1', p1: 'p1s', h2s: 'h2s' };      // plate -> printer profile
+const BBL_PLATE = { a1mini: 'a1mini', a1: 'a1', p1s: 'p1', x1c: 'p1', p2s: 'p1', h2s: 'h2s' }; // printer profile -> plate
+function bblKey(p) {
+  if (p.fmt !== 'bambu' || !window.BBL_PROFILES) return null;
+  const k = p.bblPrinter === 'auto' ? BBL_AUTO[p.plate] : p.bblPrinter;
+  return k && BBL_PROFILES.printers[k] ? k : null;
+}
+const bblCfg = k => ({ ...BBL_PROFILES.base.cfg, ...BBL_PROFILES.printers[k].cfg });
+// filament slots an item prints with
+function itemExts(it, p) {
+  const base = partExt(it, baseKey(it), p);
+  return it.letter.idx.length ? [base, partExt(it, 'letter', p)] : [base];
+}
+// a plate printing more than one filament gets a prime tower: keep a strip free for it along the back of the plate
+function towerFor(its, p) {
+  const k = bblKey(p);
+  if (!k || !p.primeTower) return null;
+  if (new Set(its.flatMap(it => itemExts(it, p))).size < 2) return null;
+  const w = parseFloat(bblCfg(k).prime_tower_width) || 35;
+  return { w, reserve: w + 15 };
+}
+// printers with a no-print corner (P1S/X1C: front-left, by the purge chute): bounding box of bed_exclude_area
+function bedExclude(p) {
+  const k = bblKey(p); if (!k) return null;
+  const pts = (bblCfg(k).bed_exclude_area || []).map(s => s.split('x').map(Number));
+  if (pts.length < 3) return null;
+  return { w: Math.max(...pts.map(q => q[0])), d: Math.max(...pts.map(q => q[1])) };
+}
+// keep a strip along the left edge free of the excluded corner (3 mm clearance)
+const excludeReserve = p => { const ex = bedExclude(p); return ex ? Math.max(0, ex.w + 3 - p.plateMargin) : 0; };
+
+// letter beads and extra beads (puck/heart/bow) go on separate plates when they print in a different colour
+const isExtra = it => it.accent.idx.length > 0;
+function splitOn(p) {
+  return !!p.splitPlates && (p.beadExt !== p.accentExt || String(p.beadColor).toLowerCase() !== String(p.accentColor).toLowerCase());
+}
+// groups of item indices, each starting on a fresh plate
+function plateGroups(items, p) {
+  const all = items.map((_, i) => i);
+  if (!splitOn(p)) return [all];
+  return [all.filter(i => !isExtra(items[i])), all.filter(i => isExtra(items[i]))].filter(g => g.length);
+}
+// Bambu Studio lays plates out in a grid: ceil(sqrt(n)) columns, 20 % gap, rows going -Y
+function plateOrigin(s, n, plate) {
+  const cols = Math.max(1, Math.ceil(Math.sqrt(n) - 1e-9));
+  return [(s % cols) * plate.w * 1.2, -Math.floor(s / cols) * plate.d * 1.2];
+}
+
+// place items; returns { placed: [{item, ox, oy, rot, sheet}] (same order as items), plate, plates: [{x, y}], overflow }
+// transform for a vertex: rot ? (-y, x) : (x, y), then + (ox, oy)
+function layout(items, p) {
+  const out = { placed: new Array(items.length), plate: null, plates: [], towers: [], overflow: 0, groups: 0 };
+  if (!items.length) return out;
+  const g = p.batchGap;
+  const centerIn = (it, rot, cx, cy) => {
+    const b = it.bounds;
+    // rotated bounds: x in [-y1, -y0], y in [x0, x1]
+    const mx = rot ? -(b.y0 + b.y1) / 2 : (b.x0 + b.x1) / 2, my = rot ? (b.x0 + b.x1) / 2 : (b.y0 + b.y1) / 2;
+    return { item: it, ox: cx - mx, oy: cy - my, rot };
+  };
+  const groups = plateGroups(items, p);
+  out.groups = groups.length;
+  let sheet = 0, freeY = 0;
+  for (const idxs of groups) {
+    const its = idxs.map(i => items[i]);
+    const cw = Math.max(...its.map(i => i.size.w)), ch = Math.max(...its.map(i => i.size.h));
+    const tw = towerFor(its, p), res = tw ? tw.reserve : 0, resX = excludeReserve(p);
+    const cap = plateCapacity(cw, ch, p, res, resX);
+    if (!cap) { // free grid, plate "none"; groups stacked downwards
+      const cols = Math.max(1, p.batchCols | 0);
+      idxs.forEach((ii, k) => {
+        const c = k % cols, r = Math.floor(k / cols);
+        out.placed[ii] = centerIn(items[ii], false, c * (cw + g) + cw / 2, freeY - r * (ch + g) - ch / 2);
+      });
+      freeY -= Math.ceil(idxs.length / cols) * (ch + g) + 15;
+      continue;
+    }
+    const { plate, rot } = cap;
+    out.plate = plate;
+    // if nothing fits, still lay out one per plate so the user sees it
+    const cols = Math.max(1, cap.cols), rows = Math.max(1, cap.rows), per = cols * rows;
+    if (!cap.n) out.overflow += idxs.length;
+    idxs.forEach((ii, k) => {
+      const s = Math.floor(k / per), j = k % per;
+      const onSheet = Math.min(per, idxs.length - s * per);
+      const usedCols = Math.min(cols, onSheet), usedRows = Math.ceil(onSheet / cols);
+      const gridW = usedCols * cap.w + (usedCols - 1) * g, gridH = usedRows * cap.h + (usedRows - 1) * g;
+      const x0 = resX + (plate.w - resX - gridW) / 2, y1 = (plate.d - res + gridH) / 2;
+      const c = j % cols, r = Math.floor(j / cols);
+      out.placed[ii] = { ...centerIn(items[ii], rot, x0 + c * (cap.w + g) + cap.w / 2, y1 - r * (cap.h + g) - cap.h / 2), sheet: sheet + s };
+    });
+    const ns = Math.ceil(idxs.length / per);
+    // tower corner (plate coordinates), back-left inside the reserved strip
+    if (tw) for (let s = 0; s < ns; s++) out.towers[sheet + s] = { x: p.plateMargin + 5, y: plate.d - tw.reserve + 5, w: tw.w, d: tw.reserve - 10 };
+    sheet += ns;
+  }
+  if (out.plate) {
+    for (let s = 0; s < sheet; s++) { const [x, y] = plateOrigin(s, sheet, out.plate); out.plates.push({ x, y }); }
+    for (const pl of out.placed) if (pl.sheet != null) { pl.ox += out.plates[pl.sheet].x; pl.oy += out.plates[pl.sheet].y; }
+  }
+  return out;
+}
+function xfMesh(m, pl) {
+  const P = m.pos, out = new Float32Array(P.length);
+  for (let i = 0; i < P.length; i += 3) {
+    const x = P[i], y = P[i + 1];
+    out[i] = (pl.rot ? -y : x) + pl.ox; out[i + 1] = (pl.rot ? x : y) + pl.oy; out[i + 2] = P[i + 2];
+  }
+  return { pos: out, idx: m.idx };
+}
+
+function updatePlateInfo(items, p) {
+  const el = $('plateInfo');
+  if (!items.length) { el.textContent = ''; return; }
+  const total = items.length * Math.max(1, p.clones | 0);
+  const lay = layout(withClones(items, p), p);
+  if (!lay.plate) { el.textContent = `${total} beads, no plate limit.`; return; }
+  if (lay.overflow) { el.textContent = 'A bead is larger than the plate: choose a smaller Bead size or a bigger printer.'; return; }
+  const n = lay.plates.length;
+  el.textContent = `The file will hold ${total} bead${total > 1 ? 's' : ''} on ${n} plate${n > 1 ? 's' : ''}` + (lay.groups > 1 ? ' (spacer beads on their own plate).' : '.') + (n > 1 ? ' Each plate is one print.' : '');
+}
+$('fillPlate').onclick = () => {
+  const items = built?.items || []; const p = readParams();
+  if (!items.length) return;
+  // sets per plate = the most every group (letter beads / extra beads) can take on its own plate
+  let n = Infinity;
+  for (const idxs of plateGroups(items, p)) {
+    const its = idxs.map(i => items[i]);
+    const tw = towerFor(its, p);
+    const cap = plateCapacity(Math.max(...its.map(i => i.size.w)), Math.max(...its.map(i => i.size.h)), p, tw ? tw.reserve : 0, excludeReserve(p));
+    if (!cap) return status('Pick a printer under Printer & export first: without a plate size there is nothing to fill.', true);
+    n = Math.min(n, Math.floor(cap.n / its.length));
+  }
+  n = Math.max(1, Math.min(50, n));
+  $('clones').value = n; $('clonesR').value = n; setViewMode('plate');
+  onChange('clones');
+};
+const esc = s => String(s).replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' }[c]));
+const f6 = v => (Math.round(v * 1e5) / 1e5).toString();
+// TriangleSelector state code used by Bambu/Orca (paint_color) and PrusaSlicer (slic3rpe:mmu_segmentation)
+const paintCode = n => n < 3 ? (n << 2).toString(16).toUpperCase() : (n - 3).toString(16).toUpperCase() + 'C';
+function meshXml(m, ox = 0, oy = 0, paintAttr = null, paintExt = 0) {
+  const parts = ['<mesh><vertices>'];
+  const P = m.pos;
+  for (let i = 0; i < P.length; i += 3) parts.push(`<vertex x="${f6(P[i] + ox)}" y="${f6(P[i + 1] + oy)}" z="${f6(P[i + 2])}"/>`);
+  parts.push('</vertices><triangles>');
+  const I = m.idx;
+  const pa = paintAttr && m.paint ? ` ${paintAttr}="${paintCode(paintExt)}"` : '';
+  for (let i = 0; i < I.length; i += 3) parts.push(`<triangle v1="${I[i]}" v2="${I[i + 1]}" v3="${I[i + 2]}"${pa && m.paint[i / 3] ? pa : ''}/>`);
+  parts.push('</triangles></mesh>');
+  return parts.join('');
+}
+function colorHex(c) { return c.toUpperCase() + 'FF'; }
+
+const CONTENT_TYPES = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+ <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+ <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+ <Default Extension="config" ContentType="text/xml"/>
+</Types>`;
+const RELS = `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+ <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`;
+
+async function export3mf(items, p, filename) {
+  const lay = layout(withClones(items, p), p), placed = lay.placed;
+  const plateObjs = lay.plates.map(() => []); // Bambu: object ids per plate
+  const zip = new JSZip(); const _f = zip.file.bind(zip); zip.file = (n, d) => _f(n, d, { createFolders: false });
+  zip.file('[Content_Types].xml', CONTENT_TYPES);
+  zip.file('_rels/.rels', RELS);
+  const res = [`<basematerials id="1">${PARTS.map(([, label, , col]) => `<base name="${label}" displaycolor="${colorHex(p[col])}"/>`).join('')}${[...extraSlots.keys()].map(h => `<base name="Bead colour" displaycolor="${colorHex(h)}"/>`).join('')}</basematerials>`];
+  const build = [];
+  let nextId = 2;
+  const cfg = ['<?xml version="1.0" encoding="UTF-8"?>\n<config>'];
+  for (const pl of placed) {
+    const item = pl.item;
+    const parts = PARTS.map(d => ({ key: d[0], label: d[1], ext: partExt(item, d[0], p), pindex: partMat(item, d[0], p), mesh: item[d[0]] })).filter(x => x.mesh.idx.length);
+    if (p.colorMode === 'paint' && item.painted) {
+      const baseExt = partExt(item, baseKey(item), p), basePi = partMat(item, baseKey(item), p), paintExt = partExt(item, 'letter', p);
+      // one solid per bead; letter triangles painted with the letter filament, the rest uses the object filament
+      const m = { ...xfMesh(item.painted, pl), paint: item.painted.paint };
+      if (p.fmt === 'prusa') {
+        const id = nextId++;
+        res.push(`<object id="${id}" name="${esc(item.name)}" type="model" pid="1" pindex="${basePi}">${meshXml(m, 0, 0, 'slic3rpe:mmu_segmentation', paintExt)}</object>`);
+        build.push(`<item objectid="${id}"/>`);
+        cfg.push(` <object id="${id}" instances_count="1">
+  <metadata type="object" key="name" value="${esc(item.name)}"/>
+  <volume firstid="0" lastid="${m.idx.length / 3 - 1}">
+   <metadata type="volume" key="name" value="Bead"/>
+   <metadata type="volume" key="volume_type" value="ModelPart"/>
+   <metadata type="volume" key="extruder" value="${baseExt}"/>
+  </volume>
+ </object>`);
+      } else {
+        const pid = nextId++, oid = nextId++;
+        res.push(`<object id="${pid}" name="Bead" type="model" pid="1" pindex="${basePi}">${meshXml(m, 0, 0, 'paint_color', paintExt)}</object>`);
+        res.push(`<object id="${oid}" name="${esc(item.name)}" type="model"><components><component objectid="${pid}"/></components></object>`);
+        build.push(`<item objectid="${oid}" printable="1"/>`);
+        if (pl.sheet != null) plateObjs[pl.sheet].push(oid);
+        cfg.push(`  <object id="${oid}">
+    <metadata key="name" value="${esc(item.name)}"/>
+    <metadata key="extruder" value="${baseExt}"/>
+    <part id="${pid}" subtype="normal_part">
+      <metadata key="name" value="Bead"/>
+      <metadata key="extruder" value="${baseExt}"/>
+    </part>
+  </object>`);
+      }
+      continue;
+    }
+    if (p.fmt === 'prusa') {
+      // single mesh object, volumes = triangle ranges
+      const id = nextId++;
+      const ms = parts.map(x => xfMesh(x.mesh, pl));
+      const pos = new Float32Array(ms.reduce((a, m) => a + m.pos.length, 0)), idx = new Uint32Array(ms.reduce((a, m) => a + m.idx.length, 0));
+      let po = 0, io = 0; const ranges = [];
+      for (const m of ms) {
+        pos.set(m.pos, po);
+        for (let i = 0; i < m.idx.length; i++) idx[io + i] = m.idx[i] + po / 3;
+        ranges.push([io / 3, (io + m.idx.length) / 3 - 1]);
+        po += m.pos.length; io += m.idx.length;
+      }
+      res.push(`<object id="${id}" name="${esc(item.name)}" type="model" pid="1" pindex="0">${meshXml({ pos, idx })}</object>`);
+      build.push(`<item objectid="${id}"/>`);
+      cfg.push(` <object id="${id}" instances_count="1">
+  <metadata type="object" key="name" value="${esc(item.name)}"/>` + parts.map((x, i) => `
+  <volume firstid="${ranges[i][0]}" lastid="${ranges[i][1]}">
+   <metadata type="volume" key="name" value="${x.label}"/>
+   <metadata type="volume" key="volume_type" value="ModelPart"/>
+   <metadata type="volume" key="extruder" value="${x.ext}"/>
+  </volume>`).join('') + `
+ </object>`);
+    } else {
+      // Bambu/Orca: one mesh object per part, grouped as components
+      for (const x of parts) {
+        x.id = nextId++;
+        res.push(`<object id="${x.id}" name="${x.label}" type="model" pid="1" pindex="${x.pindex}">${meshXml(xfMesh(x.mesh, pl))}</object>`);
+      }
+      const oid = nextId++;
+      res.push(`<object id="${oid}" name="${esc(item.name)}" type="model"><components>${parts.map(x => `<component objectid="${x.id}"/>`).join('')}</components></object>`);
+      build.push(`<item objectid="${oid}" printable="1"/>`);
+      if (pl.sheet != null) plateObjs[pl.sheet].push(oid);
+      cfg.push(`  <object id="${oid}">
+    <metadata key="name" value="${esc(item.name)}"/>
+    <metadata key="extruder" value="${parts[0].ext}"/>` + parts.map(x => `
+    <part id="${x.id}" subtype="normal_part">
+      <metadata key="name" value="${x.label}"/>
+      <metadata key="extruder" value="${x.ext}"/>
+    </part>`).join('') + `
+  </object>`);
+    }
+  }
+  if (p.fmt !== 'prusa') plateObjs.forEach((ids, s) => cfg.push(`  <plate>
+    <metadata key="plater_id" value="${s + 1}"/>
+    <metadata key="plater_name" value="${lay.groups > 1 && s > 0 && ids.length && placed.find(q => q.sheet === s && isExtra(q.item)) ? 'Spacer beads' : ''}"/>
+    <metadata key="locked" value="false"/>` + ids.map(id => `
+    <model_instance>
+      <metadata key="object_id" value="${id}"/>
+      <metadata key="instance_id" value="0"/>
+      <metadata key="identify_id" value="${id}"/>
+    </model_instance>`).join('') + `
+  </plate>`));
+  cfg.push('</config>');
+  zip.file(p.fmt === 'prusa' ? 'Metadata/Slic3r_PE_model.config' : 'Metadata/model_settings.config', cfg.join('\n'));
+  const bk = bblKey(p);
+  if (bk) zip.file('Metadata/project_settings.config', bblProject(bk, p, lay));
+  const model = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"${bk ? ' xmlns:BambuStudio="http://schemas.bambulab.com/package/2021"' : ''}${p.fmt === 'prusa' ? ' xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06"' : ''}>
+ <metadata name="Title">${esc(filename)}</metadata>
+ <metadata name="Application">${bk ? 'BambuStudio-' + BBL_PROFILES.version : 'StrungCharms'}</metadata>${bk ? '\n <metadata name="BambuStudio:3mfVersion">1</metadata>' : ''}${p.fmt === 'prusa' ? '\n <metadata name="slic3rpe:Version3mf">1</metadata>\n <metadata name="slic3rpe:MmPaintingVersion">1</metadata>' : ''}
+ <resources>
+  ${res.join('\n  ')}
+ </resources>
+ <build>
+  ${build.join('\n  ')}
+ </build>
+</model>`;
+  zip.file('3D/3dmodel.model', model);
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: 'model/3mf' });
+  download(blob, filename + '.3mf');
+}
+// full project_settings.config: flattened system presets (unchanged, so Bambu Studio selects the system presets),
+// one Bambu PLA Basic per filament slot in the page colours, chosen bed type and a prime tower position per plate
+function bblProject(k, p, lay) {
+  const D = BBL_PROFILES, pr = D.printers[k];
+  const c = bblCfg(k), fil = { ...D.base.fil, ...pr.fil };
+  delete c.default_bed_type_;
+  const used = new Set(lay.placed.flatMap(pl => itemExts(pl.item, p)));
+  const N = Math.max(1, ...used);
+  const colour = Array.from({ length: N }, () => '#FFFFFF');
+  // first colour wins per slot: bead, letter, extra
+  for (const [, , ext, col] of [...PARTS].reverse()) if (p[ext] >= 1 && p[ext] <= N) colour[p[ext] - 1] = String(p[col]).toUpperCase();
+  for (const [h, n] of extraSlots) if (n <= N) colour[n - 1] = h.toUpperCase();
+  for (const [key, v] of Object.entries(fil)) c[key] = Array.isArray(v) ? Array.from({ length: N }, () => v).flat() : v;
+  const towers = lay.plates.map((_, s) => lay.towers[s]);
+  Object.assign(c, {
+    filament_settings_id: Array(N).fill(pr.fname), filament_ids: Array(N).fill(pr.fid), filament_colour: colour,
+    filament_self_index: Array.from({ length: N }, (_, i) => String(i + 1)), filament_map: Array(N).fill('1'),
+    flush_volumes_matrix: Array.from({ length: N * N }, (_, i) => i % (N + 1) ? '280' : '0'), flush_volumes_vector: Array(2 * N).fill('140'),
+    different_settings_to_system: Array(N + 2).fill(''), inherits_group: Array(N + 2).fill(''),
+    curr_bed_type: p.bedType, name: 'project_settings', from: 'project', version: D.version,
+    wipe_tower_x: towers.map(t => f6(t ? t.x : 15)), wipe_tower_y: towers.map(t => f6(t ? t.y : 15)),
+  });
+  if (!towers.length) { c.wipe_tower_x = ['15']; c.wipe_tower_y = ['15']; }
+  return JSON.stringify(c, null, 4);
+}
+function stlBinary(m) {
+  const n = m.idx.length / 3;
+  const buf = new ArrayBuffer(84 + n * 50), dv = new DataView(buf);
+  dv.setUint32(80, n, true);
+  const P = m.pos, I = m.idx; let o = 84;
+  const v = (i) => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
+  for (let t = 0; t < n; t++) {
+    const a = v(I[t * 3]), b = v(I[t * 3 + 1]), c = v(I[t * 3 + 2]);
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], wx = c[0] - a[0], wy = c[1] - a[1], wz = c[2] - a[2];
+    let nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx; const l = Math.hypot(nx, ny, nz) || 1;
+    for (const f of [nx / l, ny / l, nz / l, ...a, ...b, ...c]) { dv.setFloat32(o, f, true); o += 4; }
+    o += 2;
+  }
+  return buf;
+}
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+const safeName = s => (s || 'beads').replace(/[^\w\-]+/g, '_').slice(0, 40) || 'beads';
+
+/* ---------------- build ---------------- */
+let built = null, customFont = null, pending = null, buildToken = 0, lostFont = false;
+let say = null; // message for the status line once the next build is done
+const status = (t, err = false) => { const el = $('status'); el.textContent = t; el.classList.toggle('err', err); };
+const beadCache = new Map(); // geometry key + token -> item
+async function getFont(p) { return p.font === '__custom' && customFont ? customFont : loadFont(p.font); }
+
+async function buildItems(p) {
+  const font = await getFont(p);
+  const { tokens, warn, trailing } = tokenize(p.name, p);
+  const gkey = JSON.stringify([p.font, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop,
+    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg]);
+  if (beadCache.gkey !== gkey) { beadCache.clear(); freeBodies(); beadCache.gkey = gkey; }
+  const items = [];
+  const capH = p.diameter * p.letterPct / 100;
+  // characters the font has no shape for (emoji, other scripts) would print as an empty box: leave those beads blank and say so
+  const lacks = ch => [...ch].some(c => !font.charToGlyphIndex(c)), missing = new Set();
+  for (const t of tokens) {
+    const key = t.type + ':' + (t.type === 'icon' ? t.value[0] : t.value || '');
+    if (t.type === 'char' && lacks(t.value)) missing.add(t.value);
+    if (!beadCache.has(key) && t.type === 'decor') beadCache.set(key, buildDecor(t.value, p, t.label));
+    if (!beadCache.has(key)) {
+      let paths = [];
+      if (t.type === 'char') {
+        if (!missing.has(t.value)) paths = textToPaths(font, t.value, { sizeBy: 'cap', textHeight: capH, letterSpacing: 0, wordSpacing: 0, curveSeg: p.curveSeg, textBold: p.textBold });
+      } else if (t.type === 'icon') {
+        const ic = await loadIcon(t.value);
+        if (ic) {
+          const k = capH * 1.15 * S / ic.U;
+          paths = offset(offset(ic.paths.map(pp => pp.map(q => ({ X: Math.round(q.X * k), Y: Math.round(q.Y * k) }))), 0.03), -0.03);
+        }
+      }
+      paths = fitGlyph(paths, p, beadBody(p));
+      beadCache.set(key, buildBead(paths, p, t.label));
+    }
+    items.push(t.col ? { ...beadCache.get(key), col: t.col } : beadCache.get(key)); // geometry is shared, colours are per bead
+  }
+  if (missing.size) { const m = [...missing]; warn.push(`This font has no ${m.slice(0, 8).join(' ')}${m.length > 8 ? ' …' : ''}: ${m.length > 1 ? 'those beads are' : 'that bead is'} left blank. Pick another font under Letter, or use an icon bead instead.`); }
+  assignSlots(items, p);
+  return { items, warn: [...new Set(warn)], tokens, trailing };
+}
+
+function onChange(id) {
+  if (!id || id === 'name') fitName();
+  if (id === 'cord') {
+    const c = CORDS[$('cord').value];
+    if (c) {
+      $('holeD').value = c.d; $('holeDR').value = c.d; $('holeShape').value = c.shape || 'round';
+      if (c.w) { $('holeW').value = c.w; $('holeWR').value = c.w; }
+      const mt = Math.ceil(minThick(readParams()) * 2) / 2; if (parseFloat($('thick').value) < mt) { $('thick').value = mt; $('thickR').value = mt; }
+    }
+  }
+  if (id === 'bblPrinter' && BBL_PLATE[$('bblPrinter').value]) $('plate').value = BBL_PLATE[$('bblPrinter').value];
+  if (id === 'plate') { // picking a printer picks the slicer its maker ships, and drops a Bambu model that no longer matches
+    const pl = $('plate').value, f = /^(pmini|mk4|core1|pxl)$/.test(pl) ? 'prusa' : BBL_AUTO[pl] ? 'bambu' : null, bm = BBL_PLATE[$('bblPrinter').value];
+    if (bm && bm !== pl) $('bblPrinter').value = 'auto';
+    if (f && f !== $('fmt').value) { $('fmt').value = f; say = `Slicer set to ${f === 'prusa' ? 'PrusaSlicer' : 'Bambu Studio'} to match the printer. Change it under Printer & export if you use another one.`; }
+  }
+  if (id === 'font') lostFont = false;
+  if (id) $('done').hidden = true; // the export note is about the file as it was
+  if (id === 'sizePreset' && $('sizePreset').value !== 'custom') { $('diameter').value = $('sizePreset').value; $('diameterR').value = $('sizePreset').value; }
+  if (id === 'diameter') { const v = String(parseFloat($('diameter').value)); $('sizePreset').value = [...$('sizePreset').options].some(o => o.value === v) ? v : 'custom'; }
+  if (id === 'holeD' || id === 'holeW' || id === 'holeShape') $('cord').value = matchCord();
+  syncUi();
+  clearTimeout(pending);
+  pending = setTimeout(rebuild, 80);
+  if (!restoring) { clearTimeout(histTimer); histTimer = setTimeout(snap, 500); }
+}
+
+/* ---------------- undo / redo: snapshots of all settings; typing and slider drags within 0.5 s merge into one step ---------------- */
+let hist = [], hi = -1, histTimer = null, restoring = false;
+function snap() {
+  clearTimeout(histTimer); histTimer = null;
+  const s = JSON.stringify(readParams());
+  if (s === hist[hi]) return;
+  hist = hist.slice(0, hi + 1); hist.push(s);
+  if (hist.length > 200) hist.shift();
+  hi = hist.length - 1;
+  updUndo();
+}
+function updUndo() { $('undoBtn').disabled = hi <= 0; $('redoBtn').disabled = hi >= hist.length - 1; }
+function restore(to) {
+  if (histTimer) snap(); // keep a pending edit so redo can bring it back
+  if (to < 0 || to >= hist.length || to === hi) return;
+  hi = to; restoring = true;
+  try { writeParams(JSON.parse(hist[hi])); selected = null; onChange(); } finally { restoring = false; }
+  updUndo();
+}
+const undo = () => { if (histTimer) snap(); restore(hi - 1); }, redo = () => restore(hi + 1);
+$('undoBtn').onclick = undo; $('redoBtn').onclick = redo;
+// Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z or Ctrl+Y redo; also inside the name box, so bead edits and typing share one history
+addEventListener('keydown', ev => {
+  if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+  const k = ev.key.toLowerCase();
+  if (k === 'z' && !ev.shiftKey) { ev.preventDefault(); undo(); }
+  else if ((k === 'z' && ev.shiftKey) || k === 'y') { ev.preventDefault(); redo(); }
+}, true);
+
+// preview knots as [along the cord (outward), across, up] in cord diameters; ±0.5 up = over / under at a crossing.
+// Figure-eight, dressed flat: an 8 along the cord, each end leaving through the far lobe. The second half is the first turned 180°.
+const FIG8_HALF = [[-6, 0, 0], [-4.6, 0, 0], [-3.4, 0, 0.5], [-2.2, 0, 0], [-1.3, 0.12, 0], [-0.5, 0.45, -0.5], [0.4, 1, 0], [1.4, 1.5, 0], [2.4, 1.45, 0], [3.1, 0.9, 0],
+  [3.4, 0, 0.5], [3.1, -0.9, 0], [2.4, -1.4, 0], [1.5, -1.35, 0], [0.5, -0.45, -0.5]];
+const FIG8_TIGHT = 0.75; // pulled snug: neighbouring strands touch
+const KNOT_FIG8 = [...FIG8_HALF, [0, 0, 0], ...FIG8_HALF.map(([a, b, c]) => [-a, -b, -c]).reverse()].map(([a, b, c]) => [a * FIG8_TIGHT, b * FIG8_TIGHT, c]);
+// double: two strands side by side follow the knot (double paracord), so the knot is laid out twice as wide
+function knotMesh(pts, r, x, y, z, ang, double = false) {
+  const d = r * 2.05 * (double ? 2 : 1), dz = r * 2.05;
+  const v = pts.map(([a, b, c]) => new THREE.Vector3((a - pts[0][0]) * d, b * d, c * dz));
+  const mid = new THREE.CatmullRomCurve3(v, false, 'centripetal'), n = pts.length * 14;
+  const g = new THREE.Group();
+  const strand = curve => {
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, n, r, 14, false), matCord));
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), matCord); tip.position.copy(curve.getPoint(1)); g.add(tip);
+  };
+  if (!double) strand(mid);
+  else for (const side of [-1, 1]) {
+    // offset sideways (in the plane of the knot) from the centre line
+    const off = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, tan = mid.getTangent(t), nrm = new THREE.Vector3(-tan.y, tan.x, 0).normalize();
+      off.push(mid.getPoint(t).addScaledVector(nrm, side * r * 1.02));
+    }
+    strand(new THREE.CatmullRomCurve3(off, false, 'centripetal'));
+  }
+  g.position.set(x, y, z); g.rotation.z = ang;
+  return g;
+}
+async function rebuild() {
+  const token = ++buildToken;
+  const p = readParams();
+  saveLocal();
+  matBody.color.set(p.beadColor); matLetter.color.set(p.letterColor); matAccent.color.set(p.accentColor);
+  if (!M) { status('Loading the 3D engine…'); await manifoldReady; }
+  if (!M) return status(manifoldErr, true); // the engine never arrived: nothing can be built
+  try { updateThumbs(p); } catch (e) { console.error(e); }
+  let res;
+  const t0 = performance.now();
+  try { status('Building…'); res = await buildItems(p); }
+  catch (e) { console.error(e); if (token === buildToken) status(`Could not build the beads: ${e.message}. ${/load (font|icon)/.test(e.message) ? 'Check your internet connection, or pick another one.' : 'Undo the last change (Ctrl+Z) and try another value.'}`, true); return; }
+  if (token !== buildToken) return;
+  const { items } = res;
+  built = { items, p, tokens: res.tokens, trailing: res.trailing };
+  modelGroup.traverse(o => o.geometry?.dispose());
+  modelGroup.clear(); modelGroup.position.set(0, 0, 0); beadGroups = [];
+  const geo = new Map();
+  const g = m => { if (!geo.has(m)) geo.set(m, meshGeo(m)); return geo.get(m); };
+  let placed;
+  if (viewMode === 'strung' && items.length) {
+    // one cord per line of the name, stacked: rows down the screen (hole along X) or columns (hole along Y)
+    const gap = 2, ax = p.holeAxis === 'y', views = items.map(it => it.cord || it), holeZ = Math.max(...views.map(it => it.holeZ ?? p.thick / 2));
+    // rows go back from the viewer: leave room for the bead height as seen from the isometric angle
+    const pitch = ax ? Math.max(...views.map(it => it.size.w)) + 30
+      : Math.max(...views.map(it => it.size.h)) + Math.max(...views.map(it => it.size.t)) / Math.tan(ISO_EL) + 15;
+    const lines = [...new Set(res.tokens.map(t => t.line ?? 0))];
+    const curs = new Map(lines.map(l => [l, 0]));
+    placed = items.map((it, ti) => {
+      // view: the meshes shown on the cord (a barrel lies along the cord here, but prints standing up)
+      const view = views[ti], b = view.bounds, l = res.tokens[ti]?.line ?? 0, off = lines.indexOf(l) * pitch, cur = curs.get(l);
+      const oz = holeZ - (view.holeZ ?? p.thick / 2); // lift thinner beads so every hole sits on the cord
+      if (ax) { const oy = cur - b.y1; curs.set(l, oy + b.y0 - gap); return { item: it, view, ox: off, oy, oz, rot: false, ti }; }
+      const ox = cur - b.x0; curs.set(l, ox + b.x1 + gap); return { item: it, view, ox, oy: -off, oz, rot: false, ti };
+    });
+    if (p.holeAxis !== 'none') lines.forEach((l, li) => {
+      const cur = curs.get(l), len = Math.abs(cur) + 30, mid = cur / 2, off = li * pitch;
+      const slot = p.holeShape === 'slot' ? Math.max(0, (p.holeW - p.holeD) / 2) : 0;
+      for (const s of slot ? [-slot, slot] : [0]) {
+        const cord = new THREE.Mesh(new THREE.CylinderGeometry(p.holeD * 0.4, p.holeD * 0.4, len, 16), matCord);
+        if (p.holeAxis === 'x') { cord.rotation.z = Math.PI / 2; cord.position.set(mid, s - off, holeZ); }
+        else cord.position.set(off - s, mid, holeZ);
+        modelGroup.add(cord);
+      }
+      // stopper knots: a figure-eight at each end of the cord (both cords together for a doubled cord)
+      const kr = p.holeD * 0.4, dbl = slot > 0;
+      if (p.holeAxis === 'x') {
+        modelGroup.add(knotMesh(KNOT_FIG8, kr, mid - len / 2, -off, holeZ, Math.PI, dbl), knotMesh(KNOT_FIG8, kr, mid + len / 2, -off, holeZ, 0, dbl));
+      } else {
+        modelGroup.add(knotMesh(KNOT_FIG8, kr, off, mid + len / 2, holeZ, Math.PI / 2, dbl), knotMesh(KNOT_FIG8, kr, off, mid - len / 2, holeZ, -Math.PI / 2, dbl));
+      }
+    });
+  } else {
+    const lay = layout(withClones(items, p), p);
+    const nc = Math.max(1, Math.floor(p.clones) || 1);
+    placed = lay.placed.map((pl, j) => ({ ...pl, ti: Math.floor(j / nc) })); // withClones repeats each bead nc times in a row
+    if (lay.plate) for (const o of lay.plates) {
+      const pg = new THREE.PlaneGeometry(lay.plate.w, lay.plate.d);
+      const plane = new THREE.Mesh(pg, plateMat);
+      plane.position.set(o.x + lay.plate.w / 2, o.y + lay.plate.d / 2, -0.05);
+      const edge = new THREE.LineSegments(new THREE.EdgesGeometry(pg), plateEdgeMat);
+      edge.position.copy(plane.position);
+      modelGroup.add(plane, edge);
+    }
+    const ex = bedExclude(p);
+    if (ex) lay.plates.forEach(o => {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(ex.w, ex.d, 0.6), exclMat);
+      box.position.set(o.x + ex.w / 2, o.y + ex.d / 2, 0.3);
+      modelGroup.add(box);
+    });
+    lay.towers.forEach((tw, s) => {
+      if (!tw) return;
+      const o = lay.plates[s], box = new THREE.Mesh(new THREE.BoxGeometry(tw.w, tw.d, 12), towerMat);
+      box.position.set(o.x + tw.x + tw.w / 2, o.y + tw.y + tw.d / 2, 6);
+      modelGroup.add(box);
+    });
+    if (lay.overflow) res.warn.push(`${lay.overflow} bead${lay.overflow > 1 ? 's are' : ' is'} larger than the plate: choose a smaller Bead size, or a bigger printer under Printer & export.`);
+    if (lay.plates.length > 1 && p.fmt === 'prusa') res.warn.push(`${lay.plates.length} plates: PrusaSlicer has one bed, so it loads the other plates' beads beside it. Print one plate at a time: move the rest off, then swap them in.`);
+  }
+  for (const pl of placed) {
+    const grp = new THREE.Group();
+    grp.position.set(pl.ox, pl.oy, pl.oz || 0);
+    const tk = res.tokens[pl.ti], view = pl.view || pl.item;
+    grp.userData = { bead: true, ti: pl.ti, ri: tk?.ri, auto: !!tk?.auto, home: grp.position.clone(), sw: view.size.w, sh: view.size.h };
+    const oc = pl.item.col;
+    for (const [m, mat] of [[view.body, colMat(matBody, oc?.body)], [view.letter, colMat(matLetter, oc?.letter)], [view.accent, colMat(matAccent, oc?.body)]]) {
+      if (!m.idx.length) continue;
+      const mesh = new THREE.Mesh(g(m), mat); mesh.userData.mat = mat; grp.add(mesh);
+    }
+    modelGroup.add(grp); beadGroups.push(grp);
+  }
+  // centre everything on the grid origin
+  const cbox = new THREE.Box3().setFromObject(modelGroup);
+  if (!cbox.isEmpty()) { const c = cbox.getCenter(new THREE.Vector3()); modelGroup.position.set(-c.x, -c.y, 0); }
+  showSelection();
+  updatePlateInfo(items, p);
+  if (viewMode === 'strung') fitIso(); else fitView('persp');
+  const warn = [...res.warn];
+  if (lostFont) warn.push('Your own font file is not kept between visits, so the letters use ' + p.font + '. Choose the file again under Letter.');
+  if (p.thick + 1e-6 < minThick(p)) warn.push(`Thickness ${p.thick} mm is too thin for this cord hole: it may break through the letter or the face. Under Bead, press "Use the thinnest safe thickness" (${(Math.ceil(minThick(p) * 2) / 2)} mm), or pick a thinner cord.`);
+  if (p.holeAxis !== 'none') {
+    const span = p.holeShape === 'slot' ? Math.max(p.holeW, p.holeD) : p.holeD;
+    if (span > p.diameter * 0.5) warn.push('The cord hole is very large for this bead size: pick a thinner cord under Cord hole, or a bigger Bead size.');
+    if (res.tokens?.some(t => t.value === 'puck') && span > p.puckD * 0.6) warn.push('The cord hole is very large for the pucks: raise Puck size (Spacer beads, Advanced), or pick a thinner cord.');
+    if (res.tokens?.some(t => t.value === 'cube') && p.cubeT + 1e-6 < 2 * ((p.teardrop ? p.holeD / 2 * 1.2 : p.holeD / 2) + WALL)) warn.push('The cubes are too thin for this cord hole: raise Cube thickness (Spacer beads, Advanced), or pick a thinner cord.');
+    if (res.tokens?.some(t => t.value === 'barrel') && span > p.barrelD - 3) warn.push(`The barrels are too thin for this cord hole: raise Barrel diameter to ${Math.ceil(span + 3)} mm or more (Spacer beads, Advanced).`);
+  }
+  $('warn').style.display = warn.length ? 'block' : 'none';
+  $('warn').textContent = warn.join('\n');
+  // size of a letter bead (extra beads have their own sizes); with extra beads only, the first one
+  const mi = items.findIndex(i => i.body.idx.length), s = items[Math.max(0, mi)]?.size;
+  $('empty').hidden = items.length > 0;
+  $('dims').textContent = items.length ? `${items.length} bead${items.length > 1 ? 's' : ''} · ${mi < 0 ? 'first bead' : 'letter beads'} ${s.w.toFixed(1)} × ${s.h.toFixed(1)} × ${s.t.toFixed(1)} mm` : 'Type a name';
+  const tri = items.reduce((a, i) => a + (i.body.idx.length + i.letter.idx.length + i.accent.idx.length) / 3, 0);
+  $('status').title = `${tri.toLocaleString()} triangles · built in ${(performance.now() - t0).toFixed(0)} ms`;
+  status(say || (items.length ? 'Ready. Click a bead to change just that one.' : 'Ready.')); say = null;
+}
+
+/* ---------------- export buttons ---------------- */
+async function currentItems() { const p = readParams(); return { ...(await buildItems(p)), p }; }
+// file name from the letters only: no [tokens], no per-bead {colours}
+const fname = p => 'strungcharms_' + safeName(p.name.replace(/\[[^\]]*\]|\{[^}]*\}/g, '').trim() || 'name');
+// an export that fails says so in the status line (and never leaves "Writing…" behind)
+const exporting = (what, fn) => async () => {
+  try { await fn(); } catch (e) { console.error(e); status(`${what} export failed: ${e?.message || e}`, true); }
+};
+// after an export: what was saved and what to do with it, with the filament each slot needs
+function exportDone(file, items, p, stl) {
+  const lay = layout(withClones(items, p), p), np = Math.max(1, lay.plates.length), nb = lay.placed.length;
+  const slots = new Map(), put = (n, hex, what) => { if (!slots.has(n)) slots.set(n, [hex, []]); if (!slots.get(n)[1].includes(what)) slots.get(n)[1].push(what); };
+  for (const pl of lay.placed) {
+    const it = pl.item, bk = baseKey(it);
+    put(partExt(it, bk, p), ownColor(it, bk) || p[PARTS[partRole(bk)][3]], ownColor(it, bk) ? 'own colour' : bk === 'accent' ? 'spacer beads' : 'beads');
+    if (it.letter.idx.length) put(partExt(it, 'letter', p), ownColor(it, 'letter') || p.letterColor, ownColor(it, 'letter') ? 'own colour' : 'letters');
+  }
+  $('doneTitle').textContent = `Downloaded ${file}`;
+  const fil = $('doneFil'); fil.textContent = `${nb} bead${nb > 1 ? 's' : ''} on ${np} plate${np > 1 ? 's' : ''}. Filament slots:`;
+  [...slots].sort((a, b) => a[0] - b[0]).forEach(([n, [hex, what]], i) => { const dot = document.createElement('i'); dot.style.background = hex; fil.append(i ? ', ' : ' ', dot, `${n} ${what.join(' + ')}`); });
+  const app = p.fmt === 'prusa' ? 'PrusaSlicer' : bblKey(p) ? 'Bambu Studio' : 'your slicer';
+  const steps = stl ? ['Unzip it. There is one STL file per colour.', 'Load the STL files together into your slicer as the parts of one object (do not let it re-centre them).', 'Give each part its filament, then slice and print.']
+    : [`Open the file in ${app}: drag it onto the ${app === 'your slicer' ? 'slicer' : app} window.`,
+       bblKey(p) ? 'The printer, plates and colours are already set. Load the filaments in the slots above.' : 'Choose your printer there, and load the filaments in the slots above.',
+       np > 1 ? `Slice and print each of the ${np} plates.` : 'Slice and print.'];
+  $('doneSteps').replaceChildren(...steps.map(t => Object.assign(document.createElement('li'), { textContent: t })));
+  selected = null; showSelection(); // the bead editor would sit on top of the note
+  $('done').hidden = false;
+}
+$('doneClose').onclick = () => $('done').hidden = true;
+const NOTHING = 'Nothing to export yet: type a name in the box at the top first.';
+$('exp3mf').onclick = exporting('3MF', async () => {
+  if (!M) await manifoldReady;
+  if (!M) throw new Error(manifoldErr);
+  const { items, p } = await currentItems();
+  if (!items.length) return status(NOTHING, true);
+  status('Writing 3MF…');
+  await export3mf(items, p, fname(p));
+  status(`3MF exported (${items.length * Math.max(1, p.clones | 0)} beads).`);
+  exportDone(fname(p) + '.3mf', items, p);
+});
+$('expStl').onclick = exporting('STL', async () => {
+  if (!M) await manifoldReady;
+  if (!M) throw new Error(manifoldErr);
+  const { items, p } = await currentItems();
+  if (!items.length) return status(NOTHING, true);
+  status('Writing STLs…');
+  const zip = new JSZip(); const _f = zip.file.bind(zip); zip.file = (n, d) => _f(n, d, { createFolders: false });
+  const all = layout(withClones(items, p), p).placed;
+  for (const [key, label] of PARTS) {
+    const ms = all.map(pl => xfMesh(pl.item[key], pl)).filter(m => m.idx.length);
+    if (!ms.length) continue;
+    const pos = new Float32Array(ms.reduce((a, m) => a + m.pos.length, 0)), idx = new Uint32Array(ms.reduce((a, m) => a + m.idx.length, 0));
+    let po = 0, io = 0;
+    for (const m of ms) { pos.set(m.pos, po); for (let i = 0; i < m.idx.length; i++) idx[io + i] = m.idx[i] + po / 3; po += m.pos.length; io += m.idx.length; }
+    zip.file(label.toLowerCase().replace(/\s+/g, '_') + '.stl', stlBinary({ pos, idx }));
+  }
+  download(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), fname(p) + '_stl.zip');
+  status('STLs exported.');
+  exportDone(fname(p) + '_stl.zip', items, p, true);
+});
+document.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => {
+  if (b.dataset.dragged) return;
+  const el = $('name'), s = el.selectionStart ?? el.value.length, e = el.selectionEnd ?? s;
+  el.value = el.value.slice(0, s) + b.dataset.ins + el.value.slice(e);
+  el.focus(); el.selectionStart = el.selectionEnd = s + b.dataset.ins.length;
+  onChange('name');
+});
+// quick sets: replace the name with a stock set of beads (one undo step)
+const QUICK_SETS = {
+  common: () => 'AEILOMSHRCYNTDGB',
+  // one of every bead on the Spacer beads tab
+  spacers: () => [...document.querySelectorAll('[data-ins]')].map(b => b.dataset.ins).join(''),
+  // one cord per group: letters, digits, then the spacer beads
+  all: () => ['ABCDEFGHIJKLM', 'NOPQRSTUVWXYZ', '0123456789', QUICK_SETS.spacers()].join('\n'),
+};
+document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => {
+  snap(); // keep the old name as its own undo step
+  $('name').value = QUICK_SETS[b.dataset.set]();
+  onChange('name');
+  snap();
+});
+// name box grows with its lines (up to 6, then scrolls)
+function fitName() { const el = $('name'); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 6 * 21.6 + 18) + 'px'; }
+$('name').addEventListener('input', fitName);
+// common filament colours (roughly Bambu PLA Basic)
+const SWATCHES = [['White', '#ffffff'], ['Ivory', '#f4f1ea'], ['Beige', '#f7e6de'], ['Light grey', '#d1d3d5'], ['Grey', '#8e9089'], ['Black', '#1c1c1f'],
+  ['Red', '#c12e1f'], ['Pink', '#f55a74'], ['Magenta', '#ec008c'], ['Orange', '#ff6a13'], ['Yellow', '#f4ee2a'], ['Gold', '#e4bd68'],
+  ['Bambu green', '#00ae42'], ['Mint', '#a5dfbf'], ['Cyan', '#0086d6'], ['Blue', '#0a2989'], ['Purple', '#5e43b7'], ['Lilac', '#ae96d4'],
+  ['Brown', '#9d432c'], ['Silver', '#a6a9aa']];
+for (const box of document.querySelectorAll('.swatches')) for (const [n, c] of SWATCHES) {
+  const b = document.createElement('button'); b.type = 'button'; b.title = n; b.setAttribute('aria-label', n); b.style.background = c;
+  b.onclick = () => { const inp = $(box.dataset.for); inp.value = c; inp.dispatchEvent(new Event('input', { bubbles: true })); };
+  box.appendChild(b);
+}
+new ResizeObserver(fitName).observe($('name'));
+$('autoThick').onclick = () => { const v = Math.ceil(minThick(readParams()) * 2) / 2; $('thick').value = v; $('thickR').value = v; onChange('thick'); };
+
+$('fontFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    customFont = opentype.parse(await f.arrayBuffer());
+    let opt = [...$('font').options].find(o => o.value === '__custom');
+    if (!opt) { opt = new Option('', '__custom'); $('font').add(opt, 0); }
+    opt.text = 'Custom: ' + f.name; $('font').value = '__custom';
+    onChange('font');
+  } catch (err) { status('Could not read that font file. Use a .ttf, .otf or .woff font (' + err.message + ').', true); }
+};
+
+/* ---------------- settings persistence ---------------- */
+const LS = 'strung.v1'; // storage keys keep the old project name, so saved settings carry over
+function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(readParams())); } catch {} writeUrl(); }
+// share link: every setting that differs from the defaults goes in the URL after #, e.g. #name=MIA%0ALEO&diameter=45
+function urlState(p) {
+  const d = defaults(), q = new URLSearchParams();
+  for (const [k, def] of Object.entries(d)) {
+    let v = p[k];
+    if (v === undefined || v === def || (typeof def === 'number' && Math.abs(v - def) < 1e-9)) continue;
+    if (k === 'font' && v === '__custom') continue; // an uploaded font file can't travel in a link
+    if (k === 'name' && !String(v).trim()) continue; // an empty name makes a blank link: leave it out
+    q.set(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v));
+  }
+  return q.toString();
+}
+function writeUrl() {
+  const s = urlState(readParams());
+  try { history.replaceState(null, '', s ? '#' + s : location.pathname + location.search); } catch {}
+}
+function readUrl() {
+  const h = location.hash.slice(1);
+  if (!h) return null;
+  const d = defaults(), q = new URLSearchParams(h), p = {};
+  for (const [k, v] of q) {
+    if (!(k in d) || (k === 'name' && !v.trim())) continue;
+    const def = d[k];
+    p[k] = typeof def === 'boolean' ? v === '1' || v === 'true' : typeof def === 'number' ? (isFinite(parseFloat(v)) ? parseFloat(v) : def) : v;
+  }
+  return p;
+}
+addEventListener('hashchange', () => { const u = readUrl(); if (u) { writeParams({ ...defaults(), ...u }); onChange(); } });
+$('copyLink').onclick = async () => {
+  writeUrl();
+  try { await navigator.clipboard.writeText(location.href); status('Link copied: it opens with this name and these settings.'); }
+  catch { status('Copy the address bar: it holds this name and these settings.'); }
+};
+function loadLocal() { try { return JSON.parse(localStorage.getItem(LS)); } catch { return null; } }
+$('saveCfg').onclick = () => download(new Blob([JSON.stringify(readParams(), null, 2)], { type: 'application/json' }), 'strungcharms-settings.json');
+$('loadCfgBtn').onclick = () => $('loadCfg').click();
+$('loadCfg').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const o = JSON.parse(await f.text());
+    if (!o || typeof o !== 'object' || Array.isArray(o) || !Object.keys(o).some(k => k in defaults())) throw new Error('no StrungCharms settings in it');
+    if (histTimer) snap(); // keep a pending edit so undo returns to it
+    writeParams({ ...defaults(), ...o }); say = 'Settings loaded. Undo (Ctrl+Z) brings the previous design back.'; onChange(); snap();
+  } catch (err) { status('That file is not a StrungCharms settings file (' + err.message + '). Choose one made with "Save settings file".', true); }
+  e.target.value = ''; // so the same file can be loaded again
+};
+$('resetCfg').onclick = () => { if (histTimer) snap(); writeParams(defaults()); lastFitSize = 0; lostFont = false; say = 'Everything is back to the example. Undo (Ctrl+Z) brings your design back.'; onChange(); snap(); };
+{ // first visit: a line under the name box says where to start, until the name is edited or it is dismissed
+  let seen = true; try { seen = !!localStorage.getItem('strung.seen') || localStorage.getItem(LS) !== null; } catch {}
+  const off = () => { if ($('firstHint').hidden) return; $('firstHint').hidden = true; try { localStorage.setItem('strung.seen', '1'); } catch {} };
+  $('firstHint').hidden = seen;
+  $('firstHintOk').onclick = off; $('name').addEventListener('input', off);
+  // the first click into the example name selects it all, so typing replaces it
+  $('name').addEventListener('focus', () => { if (!$('firstHint').hidden && $('name').value === OTHER_DEFAULTS.name) setTimeout(() => $('name').select()); }, { once: true });
+}
+
+/* debug hook */
+window.beads = { get built() { return built; }, export3mf, readParams, editBeads, moveBead, get hist() { return [hi, hist.length]; } };
+
+/* ---------------- init ---------------- */
+buildControls();
+for (const id of Object.keys(OTHER_DEFAULTS)) if ($(id) && !$(id + 'R')) $(id).addEventListener('input', () => onChange(id));
+// a shared link wins over the settings remembered in this browser
+{ const u = readUrl(); writeParams({ ...defaults(), ...(u || loadLocal() || {}) }); }
+snap();
+resize();
+let manifoldErr = '';
+const manifoldReady = initManifold().catch(e => { console.error(e); M = null; status(manifoldErr = 'The 3D engine could not load. Check your internet connection, then reload the page. (' + e.message + ')', true); });
+rebuild();
+</script>
+</body>
+</html>
