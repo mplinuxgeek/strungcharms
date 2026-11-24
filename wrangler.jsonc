@@ -1,0 +1,8 @@
+// Cloudflare Workers: serve this folder as a static site (no Worker code)
+{
+  "name": "strungcharms",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "."
+  }
+}
