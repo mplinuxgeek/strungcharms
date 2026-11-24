@@ -2,7 +2,7 @@
 
 **Make 3D-printable letter beads for names, keyrings and bag charms, right in your browser.**
 
-### ▶ [Open StrungCharms](https://mplinuxgeek.github.io/strung/)
+### ▶ [Open StrungCharms](https://strungcharms.com/)
 
 Type a name, pick a bead shape and colours, and export a print-ready 3MF. Bambu Studio opens it as a complete project, with printer, plate type, filaments and every plate set up. Nothing to install, and nothing is uploaded: it all runs in the page.
 
