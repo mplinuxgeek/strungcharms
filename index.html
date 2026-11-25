@@ -28,11 +28,13 @@
   #top .bar { display: flex; align-items: flex-start; gap: 12px; }
   #top h1, #top .namehint, #exp3mfTop { align-self: center; }
   #top h1 { margin: 0; white-space: nowrap; }
-  #top #name { flex: 0 1 720px; min-width: 260px; }
+  #top #nameWrap { flex: 0 1 720px; min-width: 260px; position: relative; }
+  #nameWrap #name { width: 100%; padding-right: 34px; }
+  #nameClear { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; padding: 0; border-radius: 50%; font-size: 16px; line-height: 1; }
   #quickSets { display: flex; gap: 4px; align-self: center; white-space: nowrap; }
   #top .namehint { flex: 1 1 0; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 1700px) { #top .namehint { visibility: hidden; } } /* too narrow to read: the same words are in the name box tooltip and the help */
-  @media (min-width: 801px) and (max-width: 1300px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #name { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
+  @media (min-width: 801px) and (max-width: 1300px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #nameWrap { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
   #top .undo { margin-left: auto; display: flex; gap: 4px; align-self: center; }
   #top .undo button { padding: 6px 10px; font-size: 16px; line-height: 1; }
   button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
@@ -53,6 +55,8 @@
   #donate { white-space: nowrap; align-self: center; padding: 6px 12px; border-radius: 6px; background: #ffc439; color: #111; font-weight: 600; font-size: 13px; text-decoration: none; }
   #donate:hover { background: #f2b51f; }
   #exp3mfTop { white-space: nowrap; }
+  #expTop { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: center; }
+  #expTop .check { font-size: 11px; white-space: nowrap; }
   #tabs { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
   #tabs [role=tablist] { display: flex; gap: 2px; }
   #tabs button { background: transparent; color: var(--muted); border-radius: 7px 7px 0 0; padding: 7px 14px; font-weight: 600; white-space: nowrap; border-bottom: 2px solid transparent; }
@@ -87,9 +91,18 @@
   .rst { visibility: hidden; background: transparent; border: 0; color: var(--muted); padding: 0; width: 22px; height: 22px; font-size: 15px; line-height: 1; border-radius: 5px; }
   .rst.on { visibility: visible; }
   .rst:hover { background: #ffffff14; color: var(--accent2); }
-  .swatches { display: flex; flex-wrap: wrap; gap: 4px; margin: -2px 0 10px 140px; }
-  .swatches button { width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 1px solid #0006; box-shadow: inset 0 0 0 1px #fff3; cursor: pointer; }
-  .swatches button:hover { transform: scale(1.2); }
+  /* colour pickers: a swatch button that opens a grid of filament colours; the native colour input stays as the value holder */
+  input.colNative { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .colBtn { width: 44px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid #0006; box-shadow: inset 0 0 0 1px #fff3; cursor: pointer; }
+  .colBtn:disabled { opacity: 0.35; }
+  #colPop { position: fixed; z-index: 50; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px; box-shadow: 0 8px 24px #0008; }
+  #colPop[hidden] { display: none; }
+  #colPop .grid { display: grid; grid-template-columns: repeat(8, 24px); gap: 5px; }
+  #colPop .grid button { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1px solid #0006; box-shadow: inset 0 0 0 1px #fff3; cursor: pointer; }
+  #colPop .grid button:hover { transform: scale(1.15); }
+  #colPop .grid button.on { outline: 2px solid var(--accent2); outline-offset: 2px; }
+  #colPop .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
+  #colPop .name { opacity: 0.75; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   button.thumb { width: 48px; height: 48px; min-width: 48px; padding: 4px; touch-action: none; }
   .thumb[data-ins] { cursor: grab; }
@@ -129,13 +142,14 @@
   #beadPanel[hidden] { display: none; }
   #beadPanel .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   #beadPanel .row.wide { grid-template-columns: 100px 1fr; }
+  .bpSize { display: flex; align-items: center; gap: 8px; } .bpSize input { flex: 1; min-width: 0; } .bpSize output { width: 3.2em; text-align: right; }
   #view canvas { touch-action: none; }
   @media (max-width: 800px) { #modebtns { top: auto; bottom: 44px; } #warn { top: 46px; left: 12px; max-width: none; } #done { right: 12px; bottom: 92px; max-width: none; } }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } .swatches button:hover { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } #colPop .grid button:hover { transform: none; } }
   @media (max-width: 800px) {
     #top { padding: 8px 10px 0; }
     #top .bar { flex-wrap: wrap; gap: 8px; }
-    #top #name { flex: 1 1 100%; order: 3; }
+    #top #nameWrap { flex: 1 1 100%; order: 3; }
     #top .namehint { display: none; }
     #quickSets { order: 4; }
     #panel { max-height: 50vh; }
@@ -168,7 +182,7 @@ addEventListener('error', ev => {
   <header id="top">
     <div class="bar">
       <h1>StrungCharms</h1>
-      <textarea id="name" rows="1" maxlength="2000" spellcheck="false" aria-label="Name" title="One bead per letter. Enter starts the next cord. Spacer beads go in brackets, like [heart]." placeholder="Type a name… (Enter = next cord)">[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]</textarea>
+      <div id="nameWrap"><textarea id="name" rows="1" maxlength="2000" spellcheck="false" aria-label="Name" title="One bead per letter. Enter starts the next cord. Spacer beads go in brackets, like [heart]." placeholder="Type a name… (Enter = next cord)">[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]</textarea><button id="nameClear" class="ghost" type="button" title="Clear the name" aria-label="Clear the name">×</button></div>
       <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with the 16 most used letters: A E I L O M S H R C Y N T D G B">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button></div>
       <div class="hint namehint">One bead per letter, one cord per line. Spacer beads in brackets, e.g. <code>MIA [heart]</code> or <code>[star] SAM</code>.</div>
       <div class="undo">
@@ -177,10 +191,13 @@ addEventListener('error', ev => {
       <a id="donate" href="https://www.paypal.com/donate/?hosted_button_id=PZVZSNGSJVZF8" target="_blank" rel="noopener" title="Support StrungCharms via PayPal">♥ Donate</a>
       <button id="shot" class="ghost" title="Take a picture of the preview to copy or download">Screenshot</button>
       <button id="copyLink" class="ghost" title="Copy a link that opens this name with these settings">Copy link</button>
-      <button id="exp3mfTop" title="Download the print file (3MF) to open in your slicer. Pick your printer under Printer &amp; export first.">Export 3MF</button>
+      <div id="expTop">
+        <button id="exp3mfTop" title="Download the print file (3MF) to open in your slicer. Pick your printer under Printer &amp; export first.">Export 3MF</button>
+        <label class="check" title="Turns every bead over so the letter face prints on the bed and comes out smooth (not for raised letters)"><input type="checkbox" id="faceDownTop"> Print face down</label>
+      </div>
     </div>
     <div id="firstHint" class="hint" role="note" hidden><span><b>Start here:</b> type a name in the box above. Each letter becomes a bead; the words in brackets, like <code>[puck]</code>, are spacer beads you can delete. Then go through the tabs from left to right and finish with <b>Export 3MF</b>.</span><button class="ghost small" id="firstHintOk">Got it</button></div>
-    <nav id="tabs" aria-label="Settings"><div role="tablist" aria-label="Settings sections"><button data-tab="bead" role="tab">Bead</button><button data-tab="hole" role="tab">Cord hole</button><button data-tab="letter" role="tab">Letter</button><button data-tab="extras" role="tab">Spacer beads</button><button data-tab="colours" role="tab">Colours</button><button data-tab="export" role="tab">Printer &amp; export</button><button data-tab="settings" role="tab">Settings</button></div><button id="tabHide" class="hide" title="Hide settings (click a tab to reopen)" aria-label="Hide settings">▴</button></nav>
+    <nav id="tabs" aria-label="Settings"><div role="tablist" aria-label="Settings sections"><button data-tab="extras" role="tab">Spacer beads</button><button data-tab="bead" role="tab">Bead</button><button data-tab="hole" role="tab">Cord hole</button><button data-tab="letter" role="tab">Letter</button><button data-tab="colours" role="tab">Colours</button><button data-tab="export" role="tab">Printer &amp; export</button><button data-tab="settings" role="tab">Settings</button></div><button id="tabHide" class="hide" title="Hide settings (click a tab to reopen)" aria-label="Hide settings">▴</button></nav>
   </header>
   <div id="panel">
     <section class="pane" data-tab="bead" role="tabpanel" hidden>
@@ -264,29 +281,32 @@ addEventListener('error', ev => {
           <button class="ghost small" data-ins="[cloud-bead]">Cloud</button>
           <button class="ghost small" data-ins="[butterfly-bead]">Butterfly</button>
           <button class="ghost small" data-ins="[gem-bead]">Gem</button>
+          <button class="ghost small" data-ins="[emerald-bead]">Emerald</button>
           <button class="ghost small" data-ins="[paw-bead]">Paw</button>
           <button class="ghost small" data-ins="[crown-bead]">Crown</button>
           <button class="ghost small" data-ins="[football-bead]">Football</button>
           <button class="ghost small" data-ins="[basketball-bead]">Basketball</button>
           <button class="ghost small" data-ins="[soccer-bead]">Soccer ball</button>
+          <button class="ghost small" data-ins="[smiley-bead]">Smiley</button> <button class="ghost small" data-ins="[duck-bead]">Duck</button> <button class="ghost small" data-ins="[roundbow-bead]">Round bow</button>
+          <button class="ghost small" data-ins="[bear-bead]">Bear</button> <button class="ghost small" data-ins="[cat-bead]">Cat</button> <button class="ghost small" data-ins="[bunny-bead]">Bunny</button> <button class="ghost small" data-ins="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-ins="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-ins="[fire-bead]">Fire</button>
         </div>
         <div class="hint" title="You can also type them: [puck], [barrel], [heart-bead] (or ♥), [bow], [cube], [star-bead] (or ★), [flower-bead], [soccer-bead] and so on.">Click a bead to add it where the cursor is in the name box, or drag it onto the cord in the preview. It shows up in the name as a word in brackets, like <code>[puck]</code>. A barrel prints standing up, with the cord through its length.</div>
+        <div class="row wide"><label for="newSpacerCol" title="Spacer beads you add from here get this colour. The Colours tab sets the colour of spacer beads without their own.">Colour for new beads</label><span class="bpCols">
+          <input type="color" id="newSpacerCol" value="#d64545"><button class="ghost small" id="spacerColAll" title="Give every spacer bead on the cords this colour">Apply to all spacer beads</button></span></div>
         <div class="row wide"><span></span><label class="check"><input type="checkbox" id="spacerPuck"> Puck spacer between every bead</label></div>
         <div class="row wide"><label for="decorArt" title="The lines on shapes like the balls, paw and gem. They print in the letter colour, in the letter style.">Markings</label>
           <select id="decorArt"><option value="outline">Outline</option><option value="solid">Solid</option><option value="none">None (plain shapes)</option></select></div>
         <div class="row wide"><span></span><label class="check"><input type="checkbox" id="bowRotate" checked> Bows across the cord (rotated 90°)</label></div>
+        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="gemRotate"> Emeralds across the cord (rotated 90°)</label></div>
         <details class="adv" id="advExtras"><summary>Advanced: spacer bead sizes</summary><div id="extraCtl"></div></details>
       </div>
     </section>
     <section class="pane" data-tab="colours" role="tabpanel" hidden>
       <div class="sec">
-        <div><div class="row"><label for="beadColor">Bead</label><input type="color" id="beadColor" value="#f4f1ea"><input type="number" id="beadExt" min="1" max="16" value="1" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Bead filament slot"></div>
-        <div class="swatches" data-for="beadColor"></div></div>
-        <div><div class="row"><label for="letterColor">Letter</label><input type="color" id="letterColor" value="#1c1c1f"><input type="number" id="letterExt" min="1" max="16" value="2" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Letter filament slot"></div>
-        <div class="swatches" data-for="letterColor"></div></div>
-        <div><div class="row"><label for="accentColor">Spacer beads</label><input type="color" id="accentColor" value="#d64545"><input type="number" id="accentExt" min="1" max="16" value="3" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Spacer beads filament slot"></div>
-        <div class="swatches" data-for="accentColor"></div></div>
-        <div class="hint">Click a dot to set a colour. The number beside each colour is its filament slot: load that colour in that slot of your printer (AMS slot 1, 2, 3…). Click a bead in the preview to give that one bead its own colours; a new colour takes the next free slot.</div>
+        <div><div class="row"><label for="beadColor">Bead</label><input type="color" id="beadColor" value="#f4f1ea"><input type="number" id="beadExt" min="1" max="16" value="1" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Bead filament slot"></div></div>
+        <div><div class="row"><label for="letterColor">Letter</label><input type="color" id="letterColor" value="#1c1c1f"><input type="number" id="letterExt" min="1" max="16" value="2" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Letter filament slot"></div></div>
+        <div><div class="row"><label for="accentColor">Spacer beads</label><input type="color" id="accentColor" value="#d64545"><input type="number" id="accentExt" min="1" max="16" value="3" title="Filament slot this colour prints from (AMS slot / extruder number)" aria-label="Spacer beads filament slot"></div></div>
+        <div class="hint">Click a colour to choose from common filament colours. The number beside each colour is its filament slot: load that colour in that slot of your printer (AMS slot 1, 2, 3…). Click a bead in the preview to give that one bead its own colours; a new colour takes the next free slot.</div>
         <div class="hint">One filament only? Choose Engraved under Letter and set every slot to 1. Beads of another colour then go on their own plate, so you can change filament between plates.</div>
       </div>
     </section>
@@ -318,12 +338,14 @@ addEventListener('error', ev => {
           <div class="row wide"><label for="colorMode" title="Pre-painted: each bead is one solid with the letter already painted in the letter filament, ready to slice. Separate parts: bead and letter are two parts of one object, each with its own filament.">Colours in the file</label>
             <select id="colorMode"><option value="paint">Pre-painted: one piece per bead</option><option value="parts">Separate part per colour</option></select></div>
           <div class="row wide"><span></span><label class="check" title="Spacer beads in another colour get a plate of their own, so each plate needs fewer filament changes"><input type="checkbox" id="splitPlates" checked> Spacer beads on their own plate when their colour differs from the letter beads</label></div>
-          <div class="row wide"><span></span><label class="check" title="Turns every bead over so the letter face prints on the bed and comes out smooth"><input type="checkbox" id="faceDown"> Print face down: letter face on the bed (not for raised letters)</label></div>
           <div class="row wide bblRow"><span></span><label class="check" title="The prime tower is a small block a multi-colour printer prints beside the beads to clean the nozzle after each colour change"><input type="checkbox" id="primeTower" checked> Leave room for the prime tower on multi-colour plates</label></div>
         </details>
+        <div style="break-inside: avoid"><!-- keeps the face-down option under the buttons, in the same column -->
         <div class="btns">
           <button id="exp3mf" title="Download the print file (3MF) to open in your slicer">Export 3MF</button>
           <button class="ghost" id="expStl" title="For slicers that cannot open the 3MF: one STL file per colour, in a zip">Export STLs (zip)</button>
+        </div>
+        <label class="check" style="margin-top:8px" title="Turns every bead over so the letter face prints on the bed and comes out smooth"><input type="checkbox" id="faceDown"> Print face down: letter face on the bed (not for raised letters)</label>
         </div>
         <ol class="hint"><li>Pick your printer and slicer above, then press Export 3MF.</li><li>Open the downloaded file in your slicer.</li><li>Load the filament colours in the slots shown under Colours, then slice and print.</li></ol>
         <div class="hint">The file always holds the build plate, whichever preview is showing: beads in name order, left to right, top to bottom.</div>
@@ -360,6 +382,8 @@ addEventListener('error', ev => {
         <input type="color" id="bpBody" title="Bead colour (this bead only)"><input type="color" id="bpLetter" title="Letter / marking colour (this bead only)" aria-label="Letter / marking colour (this bead only)">
         <button class="ghost small" id="bpColReset" title="Back to the colours from the Colours tab">Reset</button></span></div>
       <div class="hint" id="bpColInfo"></div>
+      <div class="row wide"><label for="bpSize" title="This bead only: 100% is the normal size. The thickness and cord hole stay the same.">Size</label><span class="bpSize">
+        <input type="range" id="bpSize" min="50" max="200" step="5"><output id="bpSizeV" for="bpSize"></output></span></div>
       <div class="btns">
         <button class="ghost small" data-bp="[puck]">Puck</button>
         <button class="ghost small" data-bp="[barrel]">Barrel</button>
@@ -371,11 +395,14 @@ addEventListener('error', ev => {
         <button class="ghost small" data-bp="[cloud-bead]">Cloud</button>
         <button class="ghost small" data-bp="[butterfly-bead]">Butterfly</button>
         <button class="ghost small" data-bp="[gem-bead]">Gem</button>
+        <button class="ghost small" data-bp="[emerald-bead]">Emerald</button>
         <button class="ghost small" data-bp="[paw-bead]">Paw</button>
         <button class="ghost small" data-bp="[crown-bead]">Crown</button>
         <button class="ghost small" data-bp="[football-bead]">Football</button>
         <button class="ghost small" data-bp="[basketball-bead]">Basketball</button>
         <button class="ghost small" data-bp="[soccer-bead]">Soccer ball</button>
+        <button class="ghost small" data-bp="[smiley-bead]">Smiley</button> <button class="ghost small" data-bp="[duck-bead]">Duck</button> <button class="ghost small" data-bp="[roundbow-bead]">Round bow</button>
+        <button class="ghost small" data-bp="[bear-bead]">Bear</button> <button class="ghost small" data-bp="[cat-bead]">Cat</button> <button class="ghost small" data-bp="[bunny-bead]">Bunny</button> <button class="ghost small" data-bp="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-bp="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-bp="[fire-bead]">Fire</button>
         <button class="ghost small" data-bp="[blank]">Blank</button>
       </div>
       <div class="row wide"><label for="bpIcon">Icon</label><select id="bpIcon"><option value="">Choose icon…</option></select></div>
@@ -396,6 +423,7 @@ addEventListener('error', ev => {
     </div>
   </main>
 </div>
+<div id="colPop" role="dialog" aria-label="Choose a colour" hidden><div class="grid"></div><div class="foot"><span class="name"></span><button class="ghost small" type="button" id="colCustom" title="Pick any colour">Custom…</button></div></div>
 <dialog id="shotDlg" aria-label="Screenshot">
   <img id="shotImg" alt="Screenshot of the preview">
   <div class="btns">
@@ -644,8 +672,8 @@ const NUM = [
   ['barrelL', 'Barrel length (mm)', 8, 100, 0.5, 21.5, 'extraCtl'],
   ['cubeD', 'Cube size (mm)', 10, 80, 0.5, 30, 'extraCtl'],
   ['cubeT', 'Cube thickness (mm)', 6, 80, 0.5, 14, 'extraCtl'],
-  ['heartPct', 'Heart bead size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
-  ['decorPct', 'Bow size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
+  ['heartPct', 'Heart bead size (% of bead)', 25, 150, 0.5, 53, 'extraCtl'],
+  ['decorPct', 'Bow size (% of bead)', 25, 150, 0.5, 39.5, 'extraCtl'],
   ['starPct', 'Star bead size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
   ['extraPct', 'Other shapes size (% of bead)', 25, 150, 0.5, 65.5, 'extraCtl'],
   ['letterPct', 'Letter height (% of bead)', 20, 80, 1, 55, 'letterCtl'],
@@ -675,7 +703,7 @@ const TIPS = {
 };
 const clampNum = (el, def) => { const v = parseFloat(el.value); return isFinite(v) ? Math.min(el.max === '' ? Infinity : +el.max, Math.max(el.min === '' ? -Infinity : +el.min, v)) : def; };
 const OTHER_DEFAULTS = {
-  name: '[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]', sizePreset: '55', shape: 'circle', edgeStyle: 'printable', bottomEdge: 'printable', cord: 'paracord', holeAxis: 'x', holeShape: 'round', teardrop: true, spacerPuck: false, bowRotate: true, decorArt: 'outline', splitPlates: true, faceDown: false,
+  name: '[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]', sizePreset: '55', shape: 'circle', edgeStyle: 'printable', bottomEdge: 'printable', cord: 'paracord', holeAxis: 'x', holeShape: 'round', teardrop: true, spacerPuck: false, bowRotate: true, gemRotate: false, decorArt: 'outline', splitPlates: true, faceDown: false,
   font: 'Archivo Black', letterMode: 'inlay', upper: true, backLetter: false, blankSpace: false,
   beadColor: '#f4f1ea', letterColor: '#1c1c1f', beadExt: 1, letterExt: 2, accentColor: '#d64545', accentExt: 3,
   fmt: 'bambu', bblPrinter: 'auto', bedType: 'Textured PEI Plate', primeTower: true, colorMode: 'paint', plate: 'a1mini', plateW: 200, plateD: 200, batchCols: 6,
@@ -953,15 +981,22 @@ function starParts(W) {
   });
 }
 // more extra bead shapes: kind -> label. Typed as [flower-bead], [soccer-bead], …
-const SHAPES = { flower: 'Flower', cloud: 'Cloud', butterfly: 'Butterfly', gem: 'Gem', paw: 'Paw', crown: 'Crown', football: 'Football', basketball: 'Basketball', soccer: 'Soccer ball' };
+const SHAPES = { flower: 'Flower', cloud: 'Cloud', butterfly: 'Butterfly', gem: 'Gem', paw: 'Paw', crown: 'Crown', football: 'Football', basketball: 'Basketball', soccer: 'Soccer ball',
+  smiley: 'Smiley', duck: 'Duck', roundbow: 'Round bow', emerald: 'Emerald',
+  bear: 'Bear', cat: 'Cat', bunny: 'Bunny', ladybug: 'Ladybug', cupcake: 'Cupcake', fire: 'Fire' };
 const holeSpan = p => p.holeAxis === 'none' ? 0 : p.holeShape === 'slot' ? Math.max(p.holeW, p.holeD) : p.holeD;
-const shapeW = p => p.diameter * p.extraPct / 100;
+const shapeW = (p, kind) => p.diameter * (kind === 'roundbow' ? p.decorPct : p.extraPct) / 100; // the round bow sizes with the bow
+const rot90 = paths => paths.map(path => path.map(({ X, Y }) => ({ X: -Y, Y: X }))); // clipper paths turned 90°
 const GEM = [[-0.3, 0.36], [0.3, 0.36], [0.5, 0.13], [0, -0.42], [-0.5, 0.13]];
+// emerald cut: a rectangle with cut corners, hw × hh half-size, corners cut by c (fractions of W); long side along the cord
+const emeraldPts = (hw, hh, c) => [[-hw + c, hh], [hw - c, hh], [hw, hh - c], [hw, -hh + c], [hw - c, -hh], [-hw + c, -hh], [-hw, -hh + c], [-hw, hh - c]];
+const EMERALD = [[0.5, 0.34, 0.1], [0.4, 0.24, 0.07], [0.3, 0.14, 0.04]]; // outline, step ring, table (the ring and table are the thumbnail's facet lines)
+const EMERALD_CROWN = 0.2; // how far in the table starts, as a fraction of the width
 const PAW_TOES = [[-0.33, 0.06], [-0.13, 0.27], [0.13, 0.27], [0.33, 0.06]];
 // convex parts of a SHAPES bead, W wide, centred on the cord hole. Coordinates below are fractions of W.
 // Parts overlap generously so the edge rounding of each part does not cut grooves into the face.
 function decorParts(kind, p) {
-  const W = shapeW(p), axisY = p.holeAxis === 'y';
+  const W = shapeW(p, kind), axisY = p.holeAxis === 'y';
   const need = (holeSpan(p) / 2 + 2.5) / W; // radius that keeps 2.5 mm walls around the cord hole
   const c = (x, y, r, n = 40) => circPts(x * W, y * W, r * W, n);
   const part = (...pts) => toClip(hull2d(pts.flat()));
@@ -981,6 +1016,7 @@ function decorParts(kind, p) {
         part(c(s * 0.08, -0.02, nr * 0.9), c(s * 0.26, -0.24, 0.14))])];
     }
     case 'gem': return [rounded(GEM, 0.035)];
+    case 'emerald': { const r = p.gemRotate ? ([x, y]) => [-y, x] : q => q; return [rounded(emeraldPts(...EMERALD[0]).map(r), 0.02)]; }
     case 'paw':
       return [part(c(-0.14, -0.2, 0.175), c(0.14, -0.2, 0.175), c(0, -0.06, 0.2)), ...PAW_TOES.map(([x, y]) => part(c(x, y, 0.17), c(0, 0, 0.1)))];
     case 'crown': { // the band reaches high enough that the cord hole stays below the notches between the points
@@ -994,13 +1030,42 @@ function decorParts(kind, p) {
       for (let i = 0; i <= 40; i++) { const x = -0.5 + i / 40; pts.push([x, 0.3 * (1 - 4 * x * x)], [x, -0.3 * (1 - 4 * x * x)]); }
       return [rounded(axisY ? pts.map(([x, y]) => [-y, x]) : pts, 0.03)];
     }
-    default: return [circle(0, 0, W / 2, Math.max(96, Math.round(W * 3)))]; // basketball, soccer
+    case 'duck': { // facing left: round body, head up on the left with a beak, tail up on the right; the cord goes through the body
+      const br = Math.max(0.24, need + 0.02);
+      return [part(c(-0.16, -0.13, br), c(0.18, -0.13, br)), part(c(-0.17, 0.2, 0.19), c(-0.1, -0.08, 0.2)),
+        part(c(-0.42, 0.16, 0.06), c(-0.27, 0.19, 0.08)), part(c(0.39, 0.15, 0.07), c(0.2, -0.05, 0.2))];
+    }
+    case 'roundbow': { // rounded loops, a round knot and two notched tails hanging down; the cord goes through the knot and loop roots
+      const kr = Math.max(0.13, need), nr = Math.max(0.1, need);
+      const parts = [part(c(0, 0.02, kr)), ...[-1, 1].flatMap(s => [
+        part(c(s * 0.08, 0.02, nr), c(s * 0.3, 0.14, 0.18), c(s * 0.36, -0.01, 0.13)),
+        part(c(s * 0.06, -0.02, 0.06), c(s * 0.22, -0.37, 0.05), c(s * 0.35, -0.29, 0.05))])];
+      return p.bowRotate ? parts.map(rot90) : parts; // turned like the bow: the cord then only passes through the knot
+    }
+    case 'bear': // round face, round ears
+      return [part(c(0, -0.06, 0.4)), ...[-1, 1].map(s => part(c(s * 0.3, 0.28, 0.15), c(s * 0.15, 0.1, 0.1)))];
+    case 'cat': // wide face, pointed ears
+      return [part(c(-0.12, -0.06, 0.36), c(0.12, -0.06, 0.36)), ...[-1, 1].map(s => part(c(s * 0.34, 0.37, 0.05), c(s * 0.36, 0.05, 0.1), c(s * 0.1, 0.2, 0.1)))];
+    case 'bunny': // round head, two tall ears
+      return [part(c(0, -0.06, Math.max(0.33, need + 0.06))), ...[-1, 1].map(s => part(c(s * 0.13, 0.42, 0.085), c(s * 0.11, 0.1, 0.1)))];
+    case 'ladybug': // round body, head on the left along the cord
+      return [part(c(0.06, 0, 0.38)), part(c(-0.34, 0, Math.max(0.15, need)), c(-0.1, 0, 0.2))];
+    case 'cupcake': { // three-tier swirl of frosting over a tapered wrapper; the cord runs through the bottom tier
+      const fr = Math.max(0.12, need + 0.02);
+      return [part(c(-0.33, -0.06, 0.05), c(0.33, -0.06, 0.05), c(-0.22, -0.39, 0.05), c(0.22, -0.39, 0.05)),
+        part(c(-0.33, 0, fr), c(0.33, 0, fr)), part(c(-0.22, 0.15, 0.12), c(0.22, 0.15, 0.12)),
+        part(c(-0.08, 0.28, 0.1), c(0.08, 0.28, 0.1), c(0, 0.42, 0.04))];
+    }
+    case 'fire': // round base with the cord through it, a tall tongue leaning left and a small flame each side
+      return [part(c(0, -0.08, Math.max(0.43, need))), part(c(0.08, 0.05, 0.3), c(0.05, 0.3, 0.2)), part(c(0.04, 0.3, 0.19), c(-0.11, 0.63, 0.035)),
+        part(c(-0.22, 0, 0.22), c(-0.32, 0.33, 0.035)), part(c(0.24, -0.05, 0.22), c(0.39, 0.17, 0.035))];
+    default: return [circle(0, 0, W / 2, Math.max(96, Math.round(W * 3)))]; // basketball, soccer, smiley
   }
 }
 // markings on an extra bead as clipper paths (cut, inlaid or raised like a letter), solid or as outlines; null for a plain shape (puck, cloud) or with markings off
 function decorDetail(kind, p, bc) {
   if (p.decorArt === 'none') return null;
-  const W = shapeW(p), axisY = p.holeAxis === 'y', lw = Math.max(1.2, 0.028 * W);
+  const W = shapeW(p, kind), axisY = p.holeAxis === 'y', lw = Math.max(1.2, 0.028 * W);
   const disc = (x, y, r) => circle(x * W, y * W, r * W, 48);
   const poly = pts => toClip(pts.map(([x, y]) => [x * W, y * W]));
   const line = (...pts) => offset(poly(pts), lw / 2, C.EndType.etOpenRound);
@@ -1041,6 +1106,28 @@ function decorDetail(kind, p, bc) {
       break;
     }
     case 'flower': d = [disc(0, 0, 0.13)]; break;
+    case 'smiley': { // two eyes and a smile
+      const arc = Array.from({ length: 31 }, (_, i) => { const a = (205 + i * 130 / 30) * Math.PI / 180; return [0.27 * Math.cos(a), 0.02 + 0.27 * Math.sin(a)]; });
+      d = [disc(-0.14, 0.14, 0.065), disc(0.14, 0.14, 0.065), line(...arc)]; break;
+    }
+    case 'duck': d = [disc(-0.2, 0.24, 0.04)]; break; // eye
+    case 'bear': d = [disc(-0.15, 0.04, 0.05), disc(0.15, 0.04, 0.05), poly([[-0.055, -0.08], [0.055, -0.08], [0, -0.13]]),
+      line([0, -0.13], [0, -0.18]), line([-0.1, -0.17], [-0.05, -0.21], [0, -0.18], [0.05, -0.21], [0.1, -0.17]), ...[-1, 1].map(s => disc(s * 0.3, 0.28, 0.07))]; break; // eyes, nose, mouth, inner ears
+    case 'cat': d = [disc(-0.17, 0.03, 0.055), disc(0.17, 0.03, 0.055), poly([[-0.06, -0.08], [0.06, -0.08], [0, -0.15]]),
+      ...[-1, 1].flatMap(s => [line([s * 0.2, -0.13], [s * 0.42, -0.09]), line([s * 0.2, -0.18], [s * 0.4, -0.22])])]; break; // eyes, nose, whiskers
+    case 'bunny': d = [disc(-0.13, -0.02, 0.045), disc(0.13, -0.02, 0.045), disc(0, -0.15, 0.04), ...[-1, 1].map(s => line([s * 0.125, 0.2], [s * 0.13, 0.42]))]; break; // eyes, nose, inner ears
+    case 'ladybug': d = [disc(-0.36, 0, 0.085), line([-0.18, 0], [0.42, 0]), disc(-0.06, 0.18, 0.065), disc(0.22, 0.2, 0.065), disc(-0.06, -0.18, 0.065), disc(0.22, -0.2, 0.065)]; break; // head, wing line, spots
+    case 'cupcake': d = [...[-0.2, -0.07, 0.07, 0.2].map(x => line([x, -0.17], [x * 0.8, -0.38])), // wrapper ridges
+      line([-0.24, 0.04], [-0.17, 0.07]), line([0.02, -0.04], [0.08, -0.01]), line([0.2, 0.06], [0.26, 0.02]), // sprinkles
+      line([-0.12, 0.18], [-0.07, 0.13]), line([0.1, 0.2], [0.16, 0.18]), line([-0.03, 0.32], [0.03, 0.34])]; break;
+    case 'fire': { // outline of the inner flame: round bottom, tip up and to the right, a small lick on the left
+      const arc = Array.from({ length: 31 }, (_, i) => { const a = (20 - i * 200 / 30) * Math.PI / 180; return [0.02 + 0.19 * Math.cos(a), -0.2 + 0.19 * Math.sin(a)]; });
+      d = [line([0.08, 0.26], [0.16, 0.0], ...arc, [-0.18, -0.01], [-0.1, -0.07], [-0.03, 0.09], [0.08, 0.26])]; break;
+    }
+    case 'emerald': return null; // its facets are real slopes (see beadBody), not markings
+    case 'roundbow': d = [disc(0, 0.02, 0.09), ...[-1, 1].map(s => line([s * 0.16, 0.06], [s * 0.3, 0.16]))];
+      if (p.bowRotate) d = d.map(rot90);
+      break;
     case 'butterfly': d = [-1, 1].flatMap(s => [disc(s * 0.33, 0.2, 0.075), disc(s * 0.26, -0.24, 0.055)]); break;
     case 'gem': d = [line([-0.5, 0.13], [0.5, 0.13]), line([-0.3, 0.36], [-0.17, 0.13], [0, 0.36], [0.17, 0.13], [0.3, 0.36]),
       line([-0.17, 0.13], [0, -0.42]), line([0.17, 0.13], [0, -0.42])]; break;
@@ -1120,7 +1207,7 @@ function freeBodies() {
   bodyCaches.clear();
 }
 function beadBody(p, kind = 'main') {
-  const key = JSON.stringify([kind, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate]);
+  const key = JSON.stringify([kind, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate]);
   if (bodyCaches.has(key)) return bodyCaches.get(key);
   const T = beadT(p, kind), cube = isCube(p, kind), barrel = kind === 'barrel';
   let { parts, pole } = shapeParts(p, kind);
@@ -1140,7 +1227,7 @@ function beadBody(p, kind = 'main') {
   // barrel: always the 45° chamfer into radius on both ends, and the end faces keep a 1 mm rim around the hole
   const edgeStyle = barrel ? 'printable' : cube ? (p.bottomEdge === 'printable' ? 'printable' : 'round') : p.edgeStyle;
   // shapes with markings keep a small edge rounding, so the flat face stays big enough for the markings
-  const eMax = Math.max(0, Math.min(cube ? Math.min(p.cornerR, p.diameter / 2 * 0.98) : p.edgeSize, T / 2 - 0.05, kind === 'cube' ? T / 4 : Infinity, minDim / 4, SHAPES[kind] ? shapeW(p) * 0.05 : Infinity,
+  const eMax = Math.max(0, Math.min(cube ? Math.min(p.cornerR, p.diameter / 2 * 0.98) : p.edgeSize, T / 2 - 0.05, kind === 'cube' ? T / 4 : Infinity, minDim / 4, SHAPES[kind] ? shapeW(p, kind) * 0.05 : Infinity,
     barrel ? ((p.barrelD - holeSpan(p)) / 2 - 1) / (2 - Math.SQRT2) : Infinity));
   const e = edgeStyle === 'none' ? 0 : eMax;
   // edge profile as [inset, height from that face]; top and bottom can differ
@@ -1160,7 +1247,13 @@ function beadBody(p, kind = 'main') {
   };
   // the "bottom edge" is the edge on the bed: when printing face down that is the letter face (z = T)
   const bedProf = barrel || p.bottomEdge === 'printable' ? edgeProfile('printable', eMax) : edgeProfile(edgeStyle, e);
-  const [lo, hi] = faceDown(p) ? [edgeProfile(edgeStyle, e), bedProf] : [bedProf, edgeProfile(edgeStyle, e)];
+  // emerald: the top rises in two sloped steps (facets) from the girdle to a flat table, like a cut stone
+  const gw = kind === 'emerald' ? Math.min(shapeW(p) * EMERALD_CROWN, minDim / 2 - 1) : 0;
+  // the crown stays above the cord hole plus a wall, so the hole never breaks out through the slopes
+  const holeTop = p.holeAxis === 'none' ? 0 : (p.holeShape === 'slot' ? p.holeD / 2 : holeSpan(p) / 2) * (p.teardrop ? 1.2 : 1) + WALL;
+  const ch = Math.max(1, Math.min(T * 0.45, T / 2 - holeTop));
+  const top = gw > 0 ? [[gw, 0], [gw * 0.45, ch * 0.45], [0, ch]] : edgeProfile(edgeStyle, e);
+  const [lo, hi] = faceDown(p) ? [top, bedProf] : [bedProf, top];
   const prof = [...lo, ...hi.map(([inset, h]) => [inset, T - h])];
   const hulls = parts.map(part => {
     const pts = [];
@@ -1175,7 +1268,7 @@ function beadBody(p, kind = 'main') {
   let hole = null, body = hull;
   if (p.holeAxis !== 'none') { hole = barrel ? barrelHole(p, T) : holeSolid(p, Math.max(ob.x1 - ob.x0, ob.y1 - ob.y0) * 2 + 20, T); body = hull.subtract(hole); }
   // safe area for letters: inside the flat face, 1 mm clear of the edge rounding
-  const inner = offset(outline, -(eMax + (SHAPES[kind] ? 0.4 : 1)));
+  const inner = offset(outline, -(Math.max(eMax, gw) + (SHAPES[kind] ? 0.4 : 1)));
   const bc = { key, hull, body, hole, outline, inner, bounds: ob, T };
   bodyCaches.set(key, bc);
   return bc;
@@ -1317,25 +1410,32 @@ const DECOR = { blank: ['blank', 'Blank'], puck: ['puck', 'Puck'], barrel: ['bar
 for (const [k, l] of Object.entries(SHAPES)) DECOR[k + '-bead'] = DECOR[k + 'bead'] = [k, l];
 DECOR['soccerball-bead'] = DECOR.soccer;
 // every bead token keeps its source text (src) and the non-bead text before it (gap), so the name can be rewritten after edits
-// per-bead colours, written after the bead in the name: A{#ff0000} (bead), A{#ff0000,#ffffff} (bead, letter), A{,#ffffff} (letter)
-const HEX = /^#[0-9a-f]{6}$/i;
+// per-bead colours and size, written after the bead in the name: A{#ff0000} (bead), A{#ff0000,#ffffff} (bead, letter),
+// A{,#ffffff} (letter), A{,,80%} (size, % of the normal size; the thickness and cord hole stay the same)
+const HEX = /^#[0-9a-f]{6}$/i, SIZE = /^\d{1,3}%$/;
+const clampSize = v => Math.max(50, Math.min(200, Math.round(v)));
 function parseMod(mod) {
-  const [b, l] = (mod || '').slice(1, -1).split(',');
-  const col = { body: HEX.test(b) ? b.toLowerCase() : undefined, letter: HEX.test(l) ? l.toLowerCase() : undefined };
-  return col.body || col.letter ? col : null;
+  const [b, l, z] = (mod || '').slice(1, -1).split(',');
+  const col = { body: HEX.test(b) ? b.toLowerCase() : undefined, letter: HEX.test(l) ? l.toLowerCase() : undefined,
+    size: SIZE.test(z || '') && clampSize(parseInt(z)) !== 100 ? clampSize(parseInt(z)) : undefined };
+  return col.body || col.letter || col.size ? col : null;
 }
-const fmtMod = col => col?.body || col?.letter ? `{${col.body || ''}${col.letter ? ',' + col.letter : ''}}` : '';
+const fmtMod = col => !(col?.body || col?.letter || col?.size) ? ''
+  : `{${col.body || ''}${col.letter || col.size ? ',' + (col.letter || '') : ''}${col.size ? ',' + col.size + '%' : ''}}`;
 function tokenize(name, p) {
   let out = [];
   const warn = [];
   let gap = '', line = 0;
   // each line of the name is its own cord; the newline is kept in the gap before the next bead so edits keep it
   const add = tk => { tk.src = tk.src ?? ''; tk.mod = ''; tk.gap = gap; tk.line = line; gap = ''; out.push(tk); };
-  const re = /\[([^\]]*)\]|(\s)|(\{[#0-9a-fA-F,]*\})|(.)/gsu;
+  const re = /\[([^\]]*)\]|(\s)|(\{[#0-9a-fA-F,%]*\})|(.)/gsu;
   for (const m of name.matchAll(re)) {
     if (m[3] !== undefined) { // colour modifier: belongs to the bead right before it
       const last = out[out.length - 1];
-      if (last && !gap && !last.mod) { last.mod = m[3]; last.col = parseMod(m[3]); } else gap += m[3];
+      if (last && !gap && !last.mod) {
+        last.mod = m[3]; const c = parseMod(m[3]);
+        last.col = c?.body || c?.letter ? { body: c.body, letter: c.letter } : null; last.size = c?.size;
+      } else gap += m[3];
       continue;
     }
     if (m[1] !== undefined) {
@@ -1405,7 +1505,6 @@ function showTab(id) {
   });
   document.querySelectorAll('.pane').forEach(s => s.hidden = s.dataset.tab !== id);
   document.querySelector('#tabs .on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); // phone: the tab strip scrolls sideways
-  try { localStorage.setItem('strung.tab', id || ''); } catch {}
 }
 document.querySelectorAll('#tabs [data-tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
 $('tabHide').addEventListener('click', () => showTab(null));
@@ -1426,7 +1525,14 @@ $('tabHide').addEventListener('click', () => showTab(null));
   });
 }
 $('exp3mfTop').addEventListener('click', () => $('exp3mf').click());
-{ let t0 = 'bead'; try { const s = localStorage.getItem('strung.tab'); if (s !== null) t0 = s; } catch {} showTab(t0 || null); }
+{ // the face-down box under the top Export 3MF button mirrors the one in Printer & export, including settings loaded from a link
+  const fd = $('faceDown'), top = $('faceDownTop'), d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
+  Object.defineProperty(fd, 'checked', { get() { return d.get.call(this); }, set(v) { d.set.call(this, v); d.set.call(top, !!v); }, configurable: true });
+  top.checked = fd.checked;
+  fd.addEventListener('change', () => { top.checked = fd.checked; });
+  top.addEventListener('change', () => { fd.checked = top.checked; fd.dispatchEvent(new Event('input', { bubbles: true })); fd.dispatchEvent(new Event('change', { bubbles: true })); });
+}
+showTab('extras'); // every visit starts on the spacer beads
 function resize() {
   const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false);
   perspCam.aspect = w / h; perspCam.updateProjectionMatrix(); isoFrustum();
@@ -1652,11 +1758,12 @@ function showSelection() {
   $('bpLetter').value = tk.col?.letter || bp.letterColor;
   $('bpLetter').disabled = !hasLetter; $('bpColReset').disabled = !tk.col;
   $('bpColInfo').textContent = it ? `Filament slot: bead ${partExt(it, baseKey(it), bp)}` + (hasLetter ? `, ${tk.type === 'decor' ? 'marking' : 'letter'} ${partExt(it, 'letter', bp)}` : '') + (tk.col ? ' (own colour)' : '') : '';
+  if (document.activeElement !== $('bpSize')) { $('bpSize').value = tk.size || 100; $('bpSizeV').value = (tk.size || 100) + '%'; }
   $('bpLeft').disabled = selected === 0; $('bpRight').disabled = selected === real.length - 1;
 }
 // rewrite the name from a new list of beads {src, line}: each line (cord) keeps its line break, and non-bead text
 // (spaces) stays at the same positions within its line
-function writeName(beads, sel) {
+function writeName(beads, sel, live = false) {
   const real = realTokens(), lineGaps = new Map(), sep = new Map();
   for (const t of real) {
     const nl = t.gap.lastIndexOf('\n');
@@ -1674,12 +1781,12 @@ function writeName(beads, sel) {
   selected = sel == null ? null : order.indexOf(sel);
   $('name').value = s;
   onChange('name');
-  snap(); // a bead edit is its own undo step
+  if (!live) snap(); // a bead edit is its own undo step; live edits (a slider being dragged) wait for the release
 }
-function editBeads(fn) {
+function editBeads(fn, live = false) {
   const beads = realTokens().map(t => ({ src: t.src, mod: t.mod, line: t.line }));
   const sel = fn(beads);
-  writeName(beads, sel == null || !beads.length ? null : Math.max(0, Math.min(sel, beads.length - 1)));
+  writeName(beads, sel == null || !beads.length ? null : Math.max(0, Math.min(sel, beads.length - 1)), live);
 }
 // the moved bead joins the cord of the bead whose place it takes
 const moveBead = (from, to) => editBeads(s => { const line = s[to].line, [x] = s.splice(from, 1); x.line = line; s.splice(to, 0, x); return to; });
@@ -1696,18 +1803,24 @@ function thumbSvg(tok, p) {
     outline = offset([[{ X: -hx, Y: -hy }, { X: hx, Y: -hy }, { X: hx, Y: hy }, { X: -hx, Y: hy }].map(q => ({ X: Math.round(q.X), Y: Math.round(q.Y) }))], r);
   } else outline = union(shapeParts(p, kind).parts.flat());
   const b = bounds(outline);
-  const e = Math.max(0, Math.min(kind === 'cube' ? p.cornerR : p.edgeSize, Math.min(b.x1 - b.x0, b.y1 - b.y0) / 4, SHAPES[kind] ? shapeW(p) * 0.05 : Infinity));
-  const detail = blank ? null : decorDetail(kind, p, { outline, inner: offset(outline, -(e + (SHAPES[kind] ? 0.4 : 1))) });
+  const e = Math.max(0, Math.min(kind === 'cube' ? p.cornerR : p.edgeSize, Math.min(b.x1 - b.x0, b.y1 - b.y0) / 4, SHAPES[kind] ? shapeW(p, kind) * 0.05 : Infinity));
+  let detail = blank ? null : decorDetail(kind, p, { outline, inner: offset(outline, -(e + (SHAPES[kind] ? 0.4 : 1))) });
+  if (kind === 'emerald') { // the facets are slopes in 3D: draw their edges
+    const W = shapeW(p), r = p.gemRotate ? ([x, y]) => [-y, x] : q => q, at = i => emeraldPts(...EMERALD[i]).map(r).map(([x, y]) => [x * W, y * W]);
+    const o = at(0), ring = at(1), table = at(2), ln = pts => offset(toClip(pts), Math.max(0.5, W * 0.012), C.EndType.etOpenRound);
+    detail = union([ln([...ring, ring[0]]), ln([...table, table[0]]), ...o.map((q, i) => ln([q, ring[i], table[i]]))].flat());
+  }
   const side = Math.max(b.x1 - b.x0, b.y1 - b.y0) * 1.08, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
   return `<svg viewBox="${(cx - side / 2).toFixed(2)} ${(-cy - side / 2).toFixed(2)} ${side.toFixed(2)} ${side.toFixed(2)}" aria-hidden="true"><g transform="scale(1,-1)">`
     + `<path d="${pathD(outline)}" fill="var(${blank ? '--c-bead' : '--c-accent'})" stroke="#0008" stroke-width="${(side / 60).toFixed(2)}"/>`
     + (detail?.length ? `<path d="${pathD(detail)}" fill="var(--c-letter)"/>` : '') + '</g></svg>';
 }
-let thumbKey = '';
+let thumbKey = '', newColTouched = false;
 function updateThumbs(p) {
   const rs = document.documentElement.style;
   rs.setProperty('--c-bead', p.beadColor); rs.setProperty('--c-letter', p.letterColor); rs.setProperty('--c-accent', p.accentColor);
-  const key = JSON.stringify([p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.edgeSize, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.decorArt, p.holeAxis, p.holeShape, p.holeD, p.holeW]);
+  if (!newColTouched) $('newSpacerCol').value = p.accentColor;
+  const key = JSON.stringify([p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.edgeSize, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.holeAxis, p.holeShape, p.holeD, p.holeW]);
   if (key === thumbKey) return;
   thumbKey = key;
   document.querySelectorAll('[data-ins], [data-bp]').forEach(b => {
@@ -1732,6 +1845,18 @@ function dropSlot(ev) {
   const mark = vert ? { pos: [h.x, h.y - sg * (sh / 2 + 1), T / 2], scale: [sw + 8, 1.5, T + 6] } : { pos: [h.x + sg * (sw / 2 + 1), h.y, T / 2], scale: [1.5, sh + 8, T + 6] };
   return { at: best.userData.ri + (after ? 1 : 0), line: realTokens()[best.userData.ri]?.line ?? 0, mark };
 }
+// spacer beads added from the picker get the "Colour for new beads"; it follows the Colours tab until it is changed here
+const newSpacerTok = tok => { const c = $('newSpacerCol').value.toLowerCase(); return c === $('accentColor').value.toLowerCase() ? tok : tok + fmtMod({ body: c }); };
+
+$('newSpacerCol').addEventListener('input', () => { newColTouched = true; });
+$('spacerColAll').onclick = () => {
+  const real = realTokens(), c = $('newSpacerCol').value.toLowerCase(), own = c !== $('accentColor').value.toLowerCase();
+  if (!real.some(t => t.type === 'decor')) { status('There are no spacer beads on the cords yet.'); return; }
+  editBeads(s => {
+    s.forEach((b, i) => { if (real[i].type !== 'decor') return; const m = parseMod(b.mod) || {}; m.body = own ? c : undefined; b.mod = fmtMod(m); });
+    return selected;
+  });
+};
 let pal = null;
 const palEnd = () => { pal?.ghost?.remove(); pal = null; dropMark.visible = false; };
 document.querySelectorAll('[data-ins]').forEach(b => {
@@ -1754,7 +1879,7 @@ document.querySelectorAll('[data-ins]').forEach(b => {
     if (!dragged) return; // plain click: handled by onclick
     b.dataset.dragged = '1'; // swallow the click that follows the drop
     setTimeout(() => delete b.dataset.dragged, 0);
-    if (slot) editBeads(s => { s.splice(slot.at, 0, { src: b.dataset.ins, line: slot.line }); return null; });
+    if (slot) editBeads(s => { const t = newSpacerTok(b.dataset.ins); s.splice(slot.at, 0, { src: b.dataset.ins, mod: t.slice(b.dataset.ins.length), line: slot.line }); return null; });
   });
   b.addEventListener('pointercancel', palEnd);
 });
@@ -1805,7 +1930,11 @@ $('bpText').addEventListener('change', () => editBeads(s => {
 const setBeadCol = (which, v) => editBeads(s => { const b = s[selected], c = parseMod(b.mod) || {}; c[which] = v.toLowerCase(); b.mod = fmtMod(c); return selected; });
 $('bpBody').onchange = ev => setBeadCol('body', ev.target.value);
 $('bpLetter').onchange = ev => setBeadCol('letter', ev.target.value);
-$('bpColReset').onclick = () => editBeads(s => { s[selected].mod = ''; return selected; });
+$('bpColReset').onclick = () => editBeads(s => { const b = s[selected], c = parseMod(b.mod); b.mod = fmtMod(c?.size ? { size: c.size } : null); return selected; });
+// size: the bead resizes while the slider is dragged; the release makes it one undo step
+const setBeadSize = live => editBeads(s => { const b = s[selected], c = parseMod(b.mod) || {}, v = +$('bpSize').value; c.size = v === 100 ? undefined : v; b.mod = fmtMod(c); return selected; }, live);
+$('bpSize').oninput = () => { $('bpSizeV').value = $('bpSize').value + '%'; setBeadSize(true); };
+$('bpSize').onchange = () => setBeadSize(false);
 document.querySelectorAll('[data-bp]').forEach(b => b.onclick = () => editBeads(s => { s[selected].src = b.dataset.bp; return selected; }));
 for (const [id, label] of ICONS) $('bpIcon').add(new Option(label, '[' + id + ']'));
 $('bpIcon').onchange = () => { const v = $('bpIcon').value; $('bpIcon').value = ''; if (v) editBeads(s => { s[selected].src = v; return selected; }); };
@@ -1862,18 +1991,6 @@ function plateSize(p) {
   return e ? { w: e[2], d: e[3] } : null;
 }
 
-// how many uniform cells fit on the plate (optionally rotated 90°)
-function plateCapacity(cellW, cellH, p, reserveY = 0, reserveX = 0) {
-  const pl = plateSize(p); if (!pl) return null;
-  const g = p.batchGap, m = p.plateMargin;
-  const fit = (w, h) => {
-    const cols = Math.floor((pl.w - reserveX - 2 * m + g) / (w + g)), rows = Math.floor((pl.d - reserveY - 2 * m + g) / (h + g));
-    return { cols: Math.max(0, cols), rows: Math.max(0, rows), n: Math.max(0, cols) * Math.max(0, rows), w, h };
-  };
-  const a = fit(cellW, cellH), b = p.allowRot ? fit(cellH, cellW) : { n: -1 };
-  return b.n > a.n ? { ...b, rot: true, plate: pl } : { ...a, rot: false, plate: pl };
-}
-
 // expand names × clones
 function withClones(items, p) {
   const n = Math.max(1, Math.floor(p.clones) || 1), out = [], fd = faceDown(p);
@@ -1911,13 +2028,14 @@ function itemExts(it, p) {
   const base = partExt(it, baseKey(it), p);
   return it.letter.idx.length ? [base, partExt(it, 'letter', p)] : [base];
 }
-// a plate printing more than one filament gets a prime tower: keep a strip free for it along the back of the plate
+// a plate printing more than one filament gets a prime tower in its back-left corner; beads keep clear of that corner only
+const TOWER_D = 34, TOWER_BRIM = 3; // tower depth allowance (it grows with the number of colours) and Bambu's brim around it
 function towerFor(its, p) {
   const k = bblKey(p);
   if (!k || !p.primeTower) return null;
   if (new Set(its.flatMap(it => itemExts(it, p))).size < 2) return null;
   const w = parseFloat(bblCfg(k).prime_tower_width) || 35;
-  return { w, reserve: w + 15 };
+  return { w, d: TOWER_D };
 }
 // printers with a no-print corner (P1S/X1C: front-left, by the purge chute): bounding box of bed_exclude_area
 function bedExclude(p) {
@@ -1926,8 +2044,6 @@ function bedExclude(p) {
   if (pts.length < 3) return null;
   return { w: Math.max(...pts.map(q => q[0])), d: Math.max(...pts.map(q => q[1])) };
 }
-// keep a strip along the left edge free of the excluded corner (3 mm clearance)
-const excludeReserve = p => { const ex = bedExclude(p); return ex ? Math.max(0, ex.w + 3 - p.plateMargin) : 0; };
 
 // letter beads and extra beads (puck/heart/bow) go on separate plates when they print in a different colour
 const isExtra = it => it.accent.idx.length > 0;
@@ -1946,53 +2062,81 @@ function plateOrigin(s, n, plate) {
   return [(s % cols) * plate.w * 1.2, -Math.floor(s / cols) * plate.d * 1.2];
 }
 
-// place items; returns { placed: [{item, ox, oy, rot, sheet}] (same order as items), plate, plates: [{x, y}], overflow }
+// pack one group of beads onto as few plates as possible: shelves from the back of the plate to the front,
+// tallest beads first, each bead at its own size; the prime tower corner (back-left) and the no-print corner (front-left) stay free.
+// Returns { sheets: [[{ i, cx, cy }]] (bead centres in plate coordinates), tower, overflow }
+function packGroup(its, p, plate) {
+  const g = p.batchGap, m = p.plateMargin, tw = towerFor(its, p), ex = bedExclude(p);
+  const L = m, R = plate.w - m, B = m, T = plate.d - m;
+  // tower footprint with its brim, back-left inside the margins; the no-print corner with 3 mm clearance
+  const tower = tw ? { x: L, y: T - tw.d - 2 * TOWER_BRIM, w: tw.w + 2 * TOWER_BRIM, d: tw.d + 2 * TOWER_BRIM } : null;
+  const blocks = [tower, ex && { x: 0, y: 0, w: ex.w + 3 - g, d: ex.d + 3 - g }].filter(Boolean); // the bead gap is added back below
+  const order = its.map((it, i) => i).sort((a, b) => its[b].size.h - its[a].size.h || its[b].size.w - its[a].size.w);
+  const sheets = []; let overflow = 0, cur = null, top, x, shelfH;
+  const newSheet = () => { cur = []; sheets.push(cur); top = T; x = L; shelfH = 0; };
+  // left edge for a bead w × h on the current shelf: skip past a blocked corner if the shelf reaches its rows,
+  // by whole bead widths so the beads stay in columns with the rows above and below
+  const startX = (x0, w, h) => blocks.reduce((x, r) => top > r.y - g && top - h < r.y + r.d + g && x < r.x + r.w + g
+    ? Math.max(x, L + Math.ceil((r.x + r.w + g - L) / (w + g) - 1e-9) * (w + g)) : x, x0);
+  for (const i of order) {
+    const { w, h } = its[i].size;
+    if (w > R - L || h > T - B) { overflow++; newSheet(); cur.push({ i, cx: (L + R) / 2, cy: (B + T) / 2 }); cur = null; continue; }
+    if (!cur) newSheet();
+    let px = startX(x, w, h), fresh = 0;
+    while (px + w > R || top - h < B) {
+      if (top - h < B) { if (fresh++) { top = T; px = L; break; } newSheet(); } // next plate; a bead that only fits over the tower corner takes it
+      else { top -= shelfH + g; shelfH = 0; x = L; }    // next shelf
+      px = startX(x, w, h);
+    }
+    cur.push({ i, cx: px + w / 2, cy: top - h / 2, w, h });
+    x = px + w + g; shelfH = Math.max(shelfH, h);
+  }
+  // centre each plate's beads; they only ever move right and forwards, away from the tower corner,
+  // and only so far forwards that beads beside the no-print corner stay clear of it
+  for (const sh of sheets) {
+    if (sh.length === 1 && !sh[0].w) continue;
+    const x0 = Math.min(...sh.map(q => q.cx - q.w / 2)), x1 = Math.max(...sh.map(q => q.cx + q.w / 2));
+    const y0 = Math.min(...sh.map(q => q.cy - q.h / 2)), y1 = Math.max(...sh.map(q => q.cy + q.h / 2));
+    const dx = Math.max(0, ((R - x1) - (x0 - L)) / 2);
+    let dy = Math.max(0, ((y0 - B) - (T - y1)) / 2);
+    if (ex) for (const q of sh) if (q.cx + dx - q.w / 2 < ex.w + 3) dy = Math.max(0, Math.min(dy, q.cy - q.h / 2 - (ex.d + 3)));
+    for (const q of sh) { q.cx += dx; q.cy -= dy; }
+  }
+  return { sheets, tower, overflow };
+}
+
+// place items; returns { placed: [{item, ox, oy, rot, sheet}] (same order as items), plate, plates: [{x, y}], towers, overflow }
 // transform for a vertex: rot ? (-y, x) : (x, y), then + (ox, oy)
 function layout(items, p) {
   const out = { placed: new Array(items.length), plate: null, plates: [], towers: [], overflow: 0, groups: 0 };
   if (!items.length) return out;
   const g = p.batchGap;
-  const centerIn = (it, rot, cx, cy) => {
+  const centerIn = (it, cx, cy) => {
     const b = it.bounds;
-    // rotated bounds: x in [-y1, -y0], y in [x0, x1]
-    const mx = rot ? -(b.y0 + b.y1) / 2 : (b.x0 + b.x1) / 2, my = rot ? (b.x0 + b.x1) / 2 : (b.y0 + b.y1) / 2;
-    return { item: it, ox: cx - mx, oy: cy - my, rot };
+    return { item: it, ox: cx - (b.x0 + b.x1) / 2, oy: cy - (b.y0 + b.y1) / 2, rot: false };
   };
-  const groups = plateGroups(items, p);
+  const groups = plateGroups(items, p), plate = plateSize(p);
   out.groups = groups.length;
   let sheet = 0, freeY = 0;
   for (const idxs of groups) {
     const its = idxs.map(i => items[i]);
-    const cw = Math.max(...its.map(i => i.size.w)), ch = Math.max(...its.map(i => i.size.h));
-    const tw = towerFor(its, p), res = tw ? tw.reserve : 0, resX = excludeReserve(p);
-    const cap = plateCapacity(cw, ch, p, res, resX);
-    if (!cap) { // free grid, plate "none"; groups stacked downwards
-      const cols = Math.max(1, p.batchCols | 0);
+    if (!plate) { // free grid, plate "none"; groups stacked downwards
+      const cw = Math.max(...its.map(i => i.size.w)), ch = Math.max(...its.map(i => i.size.h)), cols = Math.max(1, p.batchCols | 0);
       idxs.forEach((ii, k) => {
         const c = k % cols, r = Math.floor(k / cols);
-        out.placed[ii] = centerIn(items[ii], false, c * (cw + g) + cw / 2, freeY - r * (ch + g) - ch / 2);
+        out.placed[ii] = centerIn(items[ii], c * (cw + g) + cw / 2, freeY - r * (ch + g) - ch / 2);
       });
       freeY -= Math.ceil(idxs.length / cols) * (ch + g) + 15;
       continue;
     }
-    const { plate, rot } = cap;
     out.plate = plate;
-    // if nothing fits, still lay out one per plate so the user sees it
-    const cols = Math.max(1, cap.cols), rows = Math.max(1, cap.rows), per = cols * rows;
-    if (!cap.n) out.overflow += idxs.length;
-    idxs.forEach((ii, k) => {
-      const s = Math.floor(k / per), j = k % per;
-      const onSheet = Math.min(per, idxs.length - s * per);
-      const usedCols = Math.min(cols, onSheet), usedRows = Math.ceil(onSheet / cols);
-      const gridW = usedCols * cap.w + (usedCols - 1) * g, gridH = usedRows * cap.h + (usedRows - 1) * g;
-      const x0 = resX + (plate.w - resX - gridW) / 2, y1 = (plate.d - res + gridH) / 2;
-      const c = j % cols, r = Math.floor(j / cols);
-      out.placed[ii] = { ...centerIn(items[ii], rot, x0 + c * (cap.w + g) + cap.w / 2, y1 - r * (cap.h + g) - cap.h / 2), sheet: sheet + s };
+    const pk = packGroup(its, p, plate);
+    out.overflow += pk.overflow;
+    pk.sheets.forEach((sh, s) => {
+      for (const q of sh) out.placed[idxs[q.i]] = { ...centerIn(its[q.i], q.cx, q.cy), sheet: sheet + s };
+      if (pk.tower) out.towers[sheet + s] = { x: pk.tower.x + TOWER_BRIM, y: pk.tower.y + TOWER_BRIM, w: pk.tower.w - 2 * TOWER_BRIM, d: pk.tower.d - 2 * TOWER_BRIM };
     });
-    const ns = Math.ceil(idxs.length / per);
-    // tower corner (plate coordinates), back-left inside the reserved strip
-    if (tw) for (let s = 0; s < ns; s++) out.towers[sheet + s] = { x: p.plateMargin + 5, y: plate.d - tw.reserve + 5, w: tw.w, d: tw.reserve - 10 };
-    sheet += ns;
+    sheet += pk.sheets.length;
   }
   if (out.plate) {
     for (let s = 0; s < sheet; s++) { const [x, y] = plateOrigin(s, sheet, out.plate); out.plates.push({ x, y }); }
@@ -2022,16 +2166,15 @@ function updatePlateInfo(items, p) {
 $('fillPlate').onclick = () => {
   const items = built?.items || []; const p = readParams();
   if (!items.length) return;
-  // sets per plate = the most every group (letter beads / extra beads) can take on its own plate
-  let n = Infinity;
-  for (const idxs of plateGroups(items, p)) {
-    const its = idxs.map(i => items[i]);
-    const tw = towerFor(its, p);
-    const cap = plateCapacity(Math.max(...its.map(i => i.size.w)), Math.max(...its.map(i => i.size.h)), p, tw ? tw.reserve : 0, excludeReserve(p));
-    if (!cap) return status('Pick a printer under Printer & export first: without a plate size there is nothing to fill.', true);
-    n = Math.min(n, Math.floor(cap.n / its.length));
-  }
-  n = Math.max(1, Math.min(50, n));
+  // sets per plate = the most copies every group (letter beads / extra beads) can fit on its own plate
+  const plate = plateSize(p);
+  if (!plate) return status('Pick a printer under Printer & export first: without a plate size there is nothing to fill.', true);
+  const fits = k => plateGroups(items, p).every(idxs => {
+    const its = idxs.flatMap(i => Array(k).fill(items[i]));
+    return packGroup(its, p, plate).sheets.length <= 1;
+  });
+  let n = 1;
+  while (n < 50 && fits(n + 1)) n++;
   $('clones').value = n; $('clonesR').value = n; setViewMode('plate');
   onChange('clones');
 };
@@ -2239,14 +2382,18 @@ async function buildItems(p) {
   const font = await getFont(p);
   const { tokens, warn, trailing } = tokenize(p.name, p);
   const gkey = JSON.stringify([p.font, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop,
-    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg]);
+    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg]);
   if (beadCache.gkey !== gkey) { beadCache.clear(); freeBodies(); beadCache.gkey = gkey; }
   const items = [];
-  const capH = p.diameter * p.letterPct / 100;
   // characters the font has no shape for (emoji, other scripts) would print as an empty box: leave those beads blank and say so
   const lacks = ch => [...ch].some(c => !font.charToGlyphIndex(c)), missing = new Set();
+  const base = p;
   for (const t of tokens) {
-    const key = t.type + ':' + (t.type === 'icon' ? t.value[0] : t.value || '');
+    // a resized bead: everything that sets its outline scales, the thickness and cord hole do not
+    const k = (t.size || 100) / 100;
+    p = k === 1 ? base : { ...base, diameter: base.diameter * k, puckD: base.puckD * k, barrelD: base.barrelD * k, barrelL: base.barrelL * k, cubeD: base.cubeD * k };
+    const capH = p.diameter * p.letterPct / 100;
+    const key = t.type + ':' + (t.type === 'icon' ? t.value[0] : t.value || '') + (k === 1 ? '' : '@' + t.size);
     if (t.type === 'char' && lacks(t.value)) missing.add(t.value);
     if (!beadCache.has(key) && t.type === 'decor') beadCache.set(key, buildDecor(t.value, p, t.label));
     if (!beadCache.has(key)) {
@@ -2265,6 +2412,7 @@ async function buildItems(p) {
     }
     items.push(t.col ? { ...beadCache.get(key), col: t.col } : beadCache.get(key)); // geometry is shared, colours are per bead
   }
+  p = base;
   if (missing.size) { const m = [...missing]; warn.push(`This font has no ${m.slice(0, 8).join(' ')}${m.length > 8 ? ' …' : ''}: ${m.length > 1 ? 'those beads are' : 'that bead is'} left blank. Pick another font under Letter, or use an icon bead instead.`); }
   assignSlots(items, p);
   return { items, warn: [...new Set(warn)], tokens, trailing };
@@ -2537,8 +2685,9 @@ $('expStl').onclick = exporting('STL', async () => {
 document.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => {
   if (b.dataset.dragged) return;
   const el = $('name'), s = el.selectionStart ?? el.value.length, e = el.selectionEnd ?? s;
-  el.value = el.value.slice(0, s) + b.dataset.ins + el.value.slice(e);
-  el.focus(); el.selectionStart = el.selectionEnd = s + b.dataset.ins.length;
+  const t = newSpacerTok(b.dataset.ins);
+  el.value = el.value.slice(0, s) + t + el.value.slice(e);
+  el.focus(); el.selectionStart = el.selectionEnd = s + t.length;
   onChange('name');
 });
 // quick sets: replace the name with a stock set of beads (one undo step)
@@ -2558,16 +2707,52 @@ document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => {
 // name box grows with its lines (up to 6, then scrolls)
 function fitName() { const el = $('name'); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 6 * 21.6 + 18) + 'px'; }
 $('name').addEventListener('input', fitName);
-// common filament colours (roughly Bambu PLA Basic)
-const SWATCHES = [['White', '#ffffff'], ['Ivory', '#f4f1ea'], ['Beige', '#f7e6de'], ['Light grey', '#d1d3d5'], ['Grey', '#8e9089'], ['Black', '#1c1c1f'],
-  ['Red', '#c12e1f'], ['Pink', '#f55a74'], ['Magenta', '#ec008c'], ['Orange', '#ff6a13'], ['Yellow', '#f4ee2a'], ['Gold', '#e4bd68'],
-  ['Bambu green', '#00ae42'], ['Mint', '#a5dfbf'], ['Cyan', '#0086d6'], ['Blue', '#0a2989'], ['Purple', '#5e43b7'], ['Lilac', '#ae96d4'],
-  ['Brown', '#9d432c'], ['Silver', '#a6a9aa']];
-for (const box of document.querySelectorAll('.swatches')) for (const [n, c] of SWATCHES) {
-  const b = document.createElement('button'); b.type = 'button'; b.title = n; b.setAttribute('aria-label', n); b.style.background = c;
-  b.onclick = () => { const inp = $(box.dataset.for); inp.value = c; inp.dispatchEvent(new Event('input', { bubbles: true })); };
-  box.appendChild(b);
+$('nameClear').onclick = () => { const n = $('name'); n.value = ''; n.dispatchEvent(new Event('input')); n.focus(); };
+// common filament colours (roughly Bambu PLA Basic and Matte), shown as a grid by every colour picker
+const FILAMENT = [['White', '#ffffff'], ['Ivory', '#f4f1ea'], ['Beige', '#f7e6de'], ['Light grey', '#d1d3d5'], ['Silver', '#a6a9aa'], ['Grey', '#8e9089'], ['Dark grey', '#545454'], ['Black', '#1c1c1f'],
+  ['Red', '#c12e1f'], ['Maroon', '#9d2235'], ['Pink', '#f55a74'], ['Sakura pink', '#e8afcf'], ['Magenta', '#ec008c'], ['Purple', '#5e43b7'], ['Lilac', '#ae96d4'], ['Indigo', '#482960'],
+  ['Blue', '#0a2989'], ['Cobalt blue', '#0056b8'], ['Cyan', '#0086d6'], ['Sky blue', '#56b7e6'], ['Turquoise', '#00b1b7'], ['Mint', '#a5dfbf'], ['Green', '#00ae42'], ['Dark green', '#164b35'],
+  ['Lime', '#c2e189'], ['Yellow', '#f4ee2a'], ['Sunflower', '#fec600'], ['Gold', '#e4bd68'], ['Orange', '#ff6a13'], ['Terracotta', '#b15533'], ['Brown', '#9d432c'], ['Dark brown', '#4d3324']];
+const colName = c => FILAMENT.find(f => f[1] === c.toLowerCase())?.[0] || c.toLowerCase();
+const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+let colTarget = null;
+const colClose = () => { $('colPop').hidden = true; colTarget?.btn.focus(); colTarget = null; };
+const colSet = c => { const inp = colTarget.inp; inp.value = c; inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); };
+for (const [n, c] of FILAMENT) {
+  const b = document.createElement('button'); b.type = 'button'; b.title = n; b.setAttribute('aria-label', n); b.style.background = c; b.dataset.c = c;
+  b.onclick = () => { colSet(c); colClose(); };
+  $('colPop').querySelector('.grid').append(b);
 }
+$('colCustom').onclick = () => { const inp = colTarget.inp; colClose(); try { inp.showPicker(); } catch { inp.click(); } };
+for (const inp of document.querySelectorAll('input[type=color]')) {
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'colBtn'; btn.setAttribute('aria-haspopup', 'dialog');
+  const label = inp.getAttribute('aria-label') || inp.title || document.querySelector(`label[for="${inp.id}"]`)?.textContent || 'Colour';
+  const paint = () => { const v = nativeValue.get.call(inp); btn.style.background = v; btn.title = `${label}: ${colName(v)}`; btn.setAttribute('aria-label', btn.title); };
+  // the app sets .value directly in many places: keep the swatch in step with it
+  Object.defineProperty(inp, 'value', { configurable: true, get() { return nativeValue.get.call(this); }, set(v) { nativeValue.set.call(this, v); paint(); } });
+  inp.addEventListener('input', paint);
+  new MutationObserver(() => { btn.disabled = inp.disabled; }).observe(inp, { attributes: true, attributeFilter: ['disabled'] });
+  btn.disabled = inp.disabled;
+  inp.classList.add('colNative'); inp.tabIndex = -1; inp.after(btn);
+  const lab = document.querySelector(`label[for="${inp.id}"]`); if (lab) lab.htmlFor = ''; // the label's click would open the native picker
+  btn.onclick = () => {
+    if (colTarget?.inp === inp) { colClose(); return; }
+    colTarget = { inp, btn };
+    const pop = $('colPop'), cur = inp.value.toLowerCase();
+    pop.querySelectorAll('.grid button').forEach(b => b.classList.toggle('on', b.dataset.c === cur));
+    pop.querySelector('.name').textContent = label + ': ' + colName(cur);
+    pop.hidden = false;
+    const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+    pop.style.top = (r.bottom + 6 + h > innerHeight - 8 ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+    (pop.querySelector('.grid button.on') || pop.querySelector('.grid button')).focus();
+  };
+  paint();
+}
+addEventListener('pointerdown', ev => { if (colTarget && !$('colPop').contains(ev.target) && ev.target !== colTarget.btn) { $('colPop').hidden = true; colTarget = null; } }, true);
+addEventListener('keydown', ev => { if (colTarget && ev.key === 'Escape') { ev.stopPropagation(); ev.preventDefault(); colClose(); } }, true);
+addEventListener('resize', () => { if (colTarget) { $('colPop').hidden = true; colTarget = null; } });
 new ResizeObserver(fitName).observe($('name'));
 $('autoThick').onclick = () => { const v = Math.ceil(minThick(readParams()) * 2) / 2; $('thick').value = v; $('thickR').value = v; onChange('thick'); };
 
