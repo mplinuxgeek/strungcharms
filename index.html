@@ -57,6 +57,8 @@
   kbd { font: inherit; font-size: 12px; background: #14151a; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
   #donate { white-space: nowrap; align-self: flex-start; padding: 6px 12px; border-radius: 6px; background: #ffc439; color: #111; font-weight: 600; font-size: 13px; text-decoration: none; }
   #donate:hover { background: #f2b51f; }
+  #makerworld { white-space: nowrap; align-self: flex-start; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); color: var(--text); font-weight: 600; font-size: 13px; text-decoration: none; }
+  #makerworld:hover { border-color: var(--accent2); color: var(--accent2); }
   #exp3mfTop { white-space: nowrap; }
   #expTop { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: flex-start; } /* the top-right buttons line up along their tops */
   #expTop .check { font-size: 11px; white-space: nowrap; }
@@ -194,6 +196,7 @@ addEventListener('error', ev => {
         <button id="undoBtn" class="ghost" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button id="redoBtn" class="ghost" title="Redo (Ctrl+Shift+Z or Ctrl+Y)" aria-label="Redo" disabled>↷</button>
       </div>
       <a id="donate" href="https://www.paypal.com/donate/?hosted_button_id=PZVZSNGSJVZF8" target="_blank" rel="noopener" title="Support StrungCharms via PayPal">♥ Donate</a>
+      <a id="makerworld" href="https://makerworld.com/en/@user_4006107580" target="_blank" rel="noopener" title="Free ways to help: like, rate or boost my models on MakerWorld">Like &amp; boost on MakerWorld</a>
       <button id="shot" class="ghost" title="Take a picture of the preview to copy or download">Screenshot</button>
       <button id="copyLink" class="ghost" title="Copy a link that opens this name with these settings">Copy link</button>
       <div id="expTop">

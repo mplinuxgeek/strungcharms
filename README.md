@@ -10,6 +10,8 @@ If StrungCharms is useful to you, you can support it here:
 
 [![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=PZVZSNGSJVZF8)
 
+Or, for free: like, rate or boost my models on [MakerWorld](https://makerworld.com/en/@user_4006107580).
+
 ## How to use it
 
 1. Type a name in the box at the top. Each letter becomes a bead.
