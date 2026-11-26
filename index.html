@@ -35,7 +35,10 @@
   #top .namehint { flex: 1 1 0; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 1700px) { #top .namehint { visibility: hidden; } } /* too narrow to read: the same words are in the name box tooltip and the help */
   @media (min-width: 801px) and (max-width: 1300px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #nameWrap { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
-  #top .undo { margin-left: auto; display: flex; gap: 4px; align-self: flex-start; }
+  #topRight { margin-left: auto; display: flex; flex-direction: column; gap: 4px; }
+  #topRight .row1 { display: flex; align-items: flex-start; gap: 12px; }
+  #topRight .terms { width: 0; min-width: 100%; margin: 0 0 2px; font-size: 11px; line-height: 1.3; color: var(--muted); text-align: right; } /* wraps to the width of the buttons above */
+  #top .undo { display: flex; gap: 4px; align-self: flex-start; }
   #top .undo button { padding: 6px 10px; font-size: 16px; line-height: 1; }
   button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
   #copyLink, #shot { white-space: nowrap; align-self: flex-start; }
@@ -186,6 +189,7 @@ addEventListener('error', ev => {
       <div id="nameWrap"><textarea id="name" rows="1" maxlength="2000" spellcheck="false" aria-label="Name" title="One bead per letter. Enter starts the next cord. Spacer beads go in brackets, like [heart]." placeholder="Type a name… (Enter = next cord)">[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]</textarea><button id="nameClear" class="ghost" type="button" title="Clear the name" aria-label="Clear the name">×</button></div>
       <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with the 16 most used letters: A E I L O M S H R C Y N T D G B">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button></div>
       <div class="hint namehint">One bead per letter, one cord per line. Spacer beads in brackets, e.g. <code>MIA [heart]</code> or <code>[star] SAM</code>.</div>
+      <div id="topRight"><div class="row1">
       <div class="undo">
         <button id="undoBtn" class="ghost" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button id="redoBtn" class="ghost" title="Redo (Ctrl+Shift+Z or Ctrl+Y)" aria-label="Redo" disabled>↷</button>
       </div>
@@ -196,6 +200,7 @@ addEventListener('error', ev => {
         <button id="exp3mfTop" title="Download the print file (3MF) to open in your slicer. Pick your printer under Printer &amp; export first.">Export 3MF</button>
         <label class="check" title="Turns every bead over so the letter face prints on the bed and comes out smooth (not for raised letters)"><input type="checkbox" id="faceDownTop"> Print face down</label>
       </div>
+      </div><p class="terms">You may sell the beads you print. Do not upload the exported files (3MF or STL) to MakerWorld or any other model-sharing site that pays or rewards uploads, and do not share or sell the files for profit.</p></div>
     </div>
     <div id="firstHint" class="hint" role="note" hidden><span><b>Start here:</b> type a name in the box above. Each letter becomes a bead; the words in brackets, like <code>[puck]</code>, are spacer beads you can delete. Then go through the tabs from left to right and finish with <b>Export 3MF</b>.</span><button class="ghost small" id="firstHintOk">Got it</button></div>
     <nav id="tabs" aria-label="Settings"><div role="tablist" aria-label="Settings sections"><button data-tab="extras" role="tab">Spacer beads</button><button data-tab="bead" role="tab">Bead</button><button data-tab="hole" role="tab">Cord hole</button><button data-tab="letter" role="tab">Letter</button><button data-tab="colours" role="tab">Colours</button><button data-tab="export" role="tab">Printer &amp; export</button><button data-tab="settings" role="tab">Settings</button></div><button id="tabHide" class="hide" title="Hide settings (click a tab to reopen)" aria-label="Hide settings">▴</button></nav>
