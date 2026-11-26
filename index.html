@@ -35,10 +35,10 @@
   #top .namehint { flex: 1 1 0; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 1700px) { #top .namehint { visibility: hidden; } } /* too narrow to read: the same words are in the name box tooltip and the help */
   @media (min-width: 801px) and (max-width: 1300px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #nameWrap { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
-  #top .undo { margin-left: auto; display: flex; gap: 4px; align-self: center; }
+  #top .undo { margin-left: auto; display: flex; gap: 4px; align-self: flex-start; }
   #top .undo button { padding: 6px 10px; font-size: 16px; line-height: 1; }
   button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
-  #copyLink, #shot { white-space: nowrap; align-self: center; }
+  #copyLink, #shot { white-space: nowrap; align-self: flex-start; }
   :focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
   #tabs button:focus-visible { outline-offset: -2px; }
   #shotDlg, #helpDlg { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 14px; max-width: min(1200px, 94vw); }
@@ -52,10 +52,10 @@
   #helpDlg dd { margin: 0; color: var(--muted); }
   #helpDlg ol { margin: 0; padding-left: 20px; color: var(--muted); }
   kbd { font: inherit; font-size: 12px; background: #14151a; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
-  #donate { white-space: nowrap; align-self: center; padding: 6px 12px; border-radius: 6px; background: #ffc439; color: #111; font-weight: 600; font-size: 13px; text-decoration: none; }
+  #donate { white-space: nowrap; align-self: flex-start; padding: 6px 12px; border-radius: 6px; background: #ffc439; color: #111; font-weight: 600; font-size: 13px; text-decoration: none; }
   #donate:hover { background: #f2b51f; }
   #exp3mfTop { white-space: nowrap; }
-  #expTop { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: center; }
+  #expTop { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: flex-start; } /* the top-right buttons line up along their tops */
   #expTop .check { font-size: 11px; white-space: nowrap; }
   #tabs { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
   #tabs [role=tablist] { display: flex; gap: 2px; }
