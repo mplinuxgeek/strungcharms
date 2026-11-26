@@ -703,7 +703,7 @@ const TIPS = {
 };
 const clampNum = (el, def) => { const v = parseFloat(el.value); return isFinite(v) ? Math.min(el.max === '' ? Infinity : +el.max, Math.max(el.min === '' ? -Infinity : +el.min, v)) : def; };
 const OTHER_DEFAULTS = {
-  name: '[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]', sizePreset: '55', shape: 'circle', edgeStyle: 'printable', bottomEdge: 'printable', cord: 'paracord', holeAxis: 'x', holeShape: 'round', teardrop: true, spacerPuck: false, bowRotate: true, gemRotate: false, decorArt: 'outline', splitPlates: true, faceDown: false,
+  name: '[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]', sizePreset: '55', shape: 'circle', edgeStyle: 'printable', bottomEdge: 'printable', cord: 'paracord2', holeAxis: 'x', holeShape: 'slot', teardrop: true, spacerPuck: false, bowRotate: true, gemRotate: false, decorArt: 'outline', splitPlates: true, faceDown: false,
   font: 'Archivo Black', letterMode: 'inlay', upper: true, backLetter: false, blankSpace: false,
   beadColor: '#f4f1ea', letterColor: '#1c1c1f', beadExt: 1, letterExt: 2, accentColor: '#d64545', accentExt: 3,
   fmt: 'bambu', bblPrinter: 'auto', bedType: 'Textured PEI Plate', primeTower: true, colorMode: 'paint', plate: 'a1mini', plateW: 200, plateD: 200, batchCols: 6,
