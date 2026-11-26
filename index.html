@@ -124,6 +124,7 @@
   #done b { display: block; margin-bottom: 4px; overflow-wrap: anywhere; }
   #done ol { margin: 4px 0 0; padding-left: 18px; color: var(--muted); }
   #done .x { position: absolute; right: 6px; top: 6px; }
+  #done .terms { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
   #done i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #fff5; margin-right: 3px; vertical-align: -1px; }
   #firstHint { display: flex; gap: 10px; align-items: center; margin-top: 8px; padding: 6px 10px; background: #1f9e8f26; border: 1px solid var(--accent); border-radius: 7px; }
   #firstHint span { flex: 1; }
@@ -370,7 +371,7 @@ addEventListener('error', ev => {
     <div id="warn" role="status" aria-live="polite"></div>
     <div id="status" role="status" aria-live="polite">Loading…</div>
     <div id="empty" hidden>Type a name in the box above to see your beads.<br><small>One bead per letter, one cord per line.</small></div>
-    <div id="done" role="status" aria-live="polite" hidden><button class="ghost small x" id="doneClose" title="Close" aria-label="Close this note">×</button><b id="doneTitle"></b><div id="doneFil"></div><ol id="doneSteps"></ol></div>
+    <div id="done" role="status" aria-live="polite" hidden><button class="ghost small x" id="doneClose" title="Close" aria-label="Close this note">×</button><b id="doneTitle"></b><div id="doneFil"></div><ol id="doneSteps"></ol><p class="terms">You may sell the beads you print. Do not upload the exported files (3MF or STL) to MakerWorld or any other model-sharing site that pays or rewards uploads, and do not share or sell the files for profit.</p></div>
     <div id="modebtns" role="group" aria-label="Preview">
       <button data-mode="strung" title="Preview the beads threaded on the cord">On cord</button>
       <button data-mode="plate" title="Preview the build plate exactly as it will be exported">Build plate</button>
@@ -474,6 +475,8 @@ addEventListener('error', ev => {
   <dl>
     <dt><kbd>←</kbd> <kbd>→</kbd> <kbd>Home</kbd> <kbd>End</kbd></dt><dd>Switch tab while a tab has focus</dd>
   </dl>
+  <h3>Selling and sharing</h3>
+  <p>You may sell the beads you print. Do not upload the exported files (3MF or STL) to MakerWorld or any other model-sharing site that pays or rewards uploads, and do not share or sell the files for profit.</p>
   <div class="btns"><button id="helpClose" class="ghost">Close</button></div>
 </dialog>
 

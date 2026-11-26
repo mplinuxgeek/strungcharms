@@ -55,6 +55,10 @@ One filament only? Choose **Engraved** under Letter and set every filament slot 
 - **Help:** press **?** (or the ? button in the preview) for how it works and the full list of shortcuts and mouse controls. The settings tabs take ← / → / Home / End.
 - **Share:** every setting is kept in the page URL. **Copy link** shares a design. Your design is also remembered in the browser, so it survives a reload.
 
+## Selling and sharing
+
+You may sell the beads you print with StrungCharms. Do not upload the exported files (3MF or STL) to MakerWorld or any other model-sharing site that pays or rewards uploads, and do not share or sell the files for profit.
+
 ## Running it yourself
 
 StrungCharms is a static page: `index.html` plus `bambu-profiles.js`. Serve the folder with any web server, for example:
