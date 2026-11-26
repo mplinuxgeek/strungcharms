@@ -187,7 +187,7 @@ addEventListener('error', ev => {
     <div class="bar">
       <h1>StrungCharms</h1>
       <div id="nameWrap"><textarea id="name" rows="1" maxlength="2000" spellcheck="false" aria-label="Name" title="One bead per letter. Enter starts the next cord. Spacer beads go in brackets, like [heart]." placeholder="Type a name… (Enter = next cord)">[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]</textarea><button id="nameClear" class="ghost" type="button" title="Clear the name" aria-label="Clear the name">×</button></div>
-      <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with the 16 most used letters: A E I L O M S H R C Y N T D G B">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button></div>
+      <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with a stock of the most used letters (30 beads): A A A A E E E L L L L I I I O O O R R R S S N N T T M M C H">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button></div>
       <div class="hint namehint">One bead per letter, one cord per line. Spacer beads in brackets, e.g. <code>MIA [heart]</code> or <code>[star] SAM</code>.</div>
       <div id="topRight"><div class="row1">
       <div class="undo">
@@ -246,6 +246,7 @@ addEventListener('error', ev => {
           <select id="holeAxis">
             <option value="x">Side to side: name reads across</option>
             <option value="y">Top to bottom: name hangs vertically</option>
+            <option value="yr">Top to bottom, letters turned: name reads down the cord</option>
             <option value="none">No hole</option>
           </select></div>
         <div id="holeCtl"></div>
@@ -294,7 +295,7 @@ addEventListener('error', ev => {
           <button class="ghost small" data-ins="[basketball-bead]">Basketball</button>
           <button class="ghost small" data-ins="[soccer-bead]">Soccer ball</button>
           <button class="ghost small" data-ins="[smiley-bead]">Smiley</button> <button class="ghost small" data-ins="[duck-bead]">Duck</button> <button class="ghost small" data-ins="[roundbow-bead]">Round bow</button>
-          <button class="ghost small" data-ins="[bear-bead]">Bear</button> <button class="ghost small" data-ins="[cat-bead]">Cat</button> <button class="ghost small" data-ins="[bunny-bead]">Bunny</button> <button class="ghost small" data-ins="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-ins="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-ins="[fire-bead]">Fire</button>
+          <button class="ghost small" data-ins="[bear-bead]">Bear</button> <button class="ghost small" data-ins="[cat-bead]">Cat</button> <button class="ghost small" data-ins="[bunny-bead]">Bunny</button> <button class="ghost small" data-ins="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-ins="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-ins="[fire-bead]">Fire</button> <button class="ghost small" data-ins="[bulldog-bead]">Bulldog</button>
         </div>
         <div class="hint" title="You can also type them: [puck], [barrel], [heart-bead] (or ♥), [bow], [cube], [star-bead] (or ★), [flower-bead], [soccer-bead] and so on.">Click a bead to add it where the cursor is in the name box, or drag it onto the cord in the preview. It shows up in the name as a word in brackets, like <code>[puck]</code>. A barrel prints standing up, with the cord through its length.</div>
         <div class="row wide"><label for="newSpacerCol" title="Spacer beads you add from here get this colour. The Colours tab sets the colour of spacer beads without their own.">Colour for new beads</label><span class="bpCols">
@@ -408,7 +409,7 @@ addEventListener('error', ev => {
         <button class="ghost small" data-bp="[basketball-bead]">Basketball</button>
         <button class="ghost small" data-bp="[soccer-bead]">Soccer ball</button>
         <button class="ghost small" data-bp="[smiley-bead]">Smiley</button> <button class="ghost small" data-bp="[duck-bead]">Duck</button> <button class="ghost small" data-bp="[roundbow-bead]">Round bow</button>
-        <button class="ghost small" data-bp="[bear-bead]">Bear</button> <button class="ghost small" data-bp="[cat-bead]">Cat</button> <button class="ghost small" data-bp="[bunny-bead]">Bunny</button> <button class="ghost small" data-bp="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-bp="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-bp="[fire-bead]">Fire</button>
+        <button class="ghost small" data-bp="[bear-bead]">Bear</button> <button class="ghost small" data-bp="[cat-bead]">Cat</button> <button class="ghost small" data-bp="[bunny-bead]">Bunny</button> <button class="ghost small" data-bp="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-bp="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-bp="[fire-bead]">Fire</button> <button class="ghost small" data-bp="[bulldog-bead]">Bulldog</button>
         <button class="ghost small" data-bp="[blank]">Blank</button>
       </div>
       <div class="row wide"><label for="bpIcon">Icon</label><select id="bpIcon"><option value="">Choose icon…</option></select></div>
@@ -772,8 +773,12 @@ function readParams() {
     p[k] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Math.round(clampNum(el, OTHER_DEFAULTS[k])) : el.value;
   }
   p.showPlate = true; p.allowRot = false;
+  // letters turned a quarter turn on a cord that runs top to bottom: the bead is the same as "Top to bottom", only the letters turn
+  p.turnLetters = p.holeAxis === 'yr'; if (p.turnLetters) p.holeAxis = 'y';
   return p;
 }
+// the settings as the controls hold them: "letters turned" is stored as its own Direction choice
+function savedParams() { const p = readParams(); if (p.turnLetters) p.holeAxis = 'yr'; delete p.turnLetters; return p; }
 function writeParams(p) {
   for (const [id, , , , , def] of NUM) { const v = p[id] ?? def; $(id).value = v; $(id + 'R').value = v; }
   for (const [k, def] of Object.entries(OTHER_DEFAULTS)) {
@@ -991,7 +996,7 @@ function starParts(W) {
 // more extra bead shapes: kind -> label. Typed as [flower-bead], [soccer-bead], …
 const SHAPES = { flower: 'Flower', cloud: 'Cloud', butterfly: 'Butterfly', gem: 'Gem', paw: 'Paw', crown: 'Crown', football: 'Football', basketball: 'Basketball', soccer: 'Soccer ball',
   smiley: 'Smiley', duck: 'Duck', roundbow: 'Round bow', emerald: 'Emerald',
-  bear: 'Bear', cat: 'Cat', bunny: 'Bunny', ladybug: 'Ladybug', cupcake: 'Cupcake', fire: 'Fire' };
+  bear: 'Bear', cat: 'Cat', bunny: 'Bunny', ladybug: 'Ladybug', cupcake: 'Cupcake', fire: 'Fire', bulldog: 'Bulldog' };
 const holeSpan = p => p.holeAxis === 'none' ? 0 : p.holeShape === 'slot' ? Math.max(p.holeW, p.holeD) : p.holeD;
 const shapeW = (p, kind) => p.diameter * (kind === 'roundbow' ? p.decorPct : p.extraPct) / 100; // the round bow sizes with the bow
 const rot90 = paths => paths.map(path => path.map(({ X, Y }) => ({ X: -Y, Y: X }))); // clipper paths turned 90°
@@ -1067,6 +1072,10 @@ function decorParts(kind, p) {
     case 'fire': // round base with the cord through it, a tall tongue leaning left and a small flame each side
       return [part(c(0, -0.08, Math.max(0.43, need))), part(c(0.08, 0.05, 0.3), c(0.05, 0.3, 0.2)), part(c(0.04, 0.3, 0.19), c(-0.11, 0.63, 0.035)),
         part(c(-0.22, 0, 0.22), c(-0.32, 0.33, 0.035)), part(c(0.24, -0.05, 0.22), c(0.39, 0.17, 0.035))];
+    case 'bulldog': // round head, wide cheeks, a broad square muzzle at the bottom and floppy ears hanging out from the top corners
+      return [part(c(-0.11, 0.08, 0.27), c(0.11, 0.08, 0.27)), part(c(-0.22, -0.1, 0.16), c(0.22, -0.1, 0.16)),
+        part(c(-0.25, -0.12, 0.1), c(0.25, -0.12, 0.1), c(-0.22, -0.27, 0.1), c(0.22, -0.27, 0.1)),
+        ...[-1, 1].map(s => part(c(s * 0.42, 0.31, 0.05), c(s * 0.41, 0.2, 0.05), c(s * 0.22, 0.36, 0.04), c(s * 0.32, 0.22, 0.05)))];
     default: return [circle(0, 0, W / 2, Math.max(96, Math.round(W * 3)))]; // basketball, soccer, smiley
   }
 }
@@ -1132,6 +1141,12 @@ function decorDetail(kind, p, bc) {
       const arc = Array.from({ length: 31 }, (_, i) => { const a = (20 - i * 200 / 30) * Math.PI / 180; return [0.02 + 0.19 * Math.cos(a), -0.2 + 0.19 * Math.sin(a)]; });
       d = [line([0.08, 0.26], [0.16, 0.0], ...arc, [-0.18, -0.01], [-0.1, -0.07], [-0.03, 0.09], [0.08, 0.26])]; break;
     }
+    case 'bulldog': d = [line([-0.14, 0.28], [0, 0.31], [0.14, 0.28]), // forehead wrinkle
+      ...[-1, 1].flatMap(s => [line([s * 0.22, 0.17], [s * 0.15, 0.22], [s * 0.08, 0.2], [s * 0.065, 0.14], [s * 0.07, 0.09]), disc(s * 0.19, 0.09, 0.034), // brow, eye
+        line([s * 0.07, 0.088], [s * 0.18, -0.01], [s * 0.25, -0.13], [s * 0.28, -0.3]), // muzzle fold
+        line([s * 0.16, -0.07], [s * 0.12, -0.035], [s * 0.08, -0.02]), line([s * 0.36, 0.22], [s * 0.3, 0.3], [s * 0.22, 0.35])]), // whisker crease, ear fold
+      line([-0.07, 0.088], [0.07, 0.088]), disc(-0.045, -0.015, 0.035), disc(0.045, -0.015, 0.035), disc(0, -0.045, 0.035), disc(0, -0.01, 0.04), // muzzle top, nose
+      line([0, -0.088], [0, -0.15]), line([-0.175, -0.3], [-0.15, -0.23], [-0.09, -0.17], [0, -0.155], [0.09, -0.17], [0.15, -0.23], [0.175, -0.3])]; break; // frowning mouth
     case 'emerald': return null; // its facets are real slopes (see beadBody), not markings
     case 'roundbow': d = [disc(0, 0.02, 0.09), ...[-1, 1].map(s => line([s * 0.16, 0.06], [s * 0.3, 0.16]))];
       if (p.bowRotate) d = d.map(rot90);
@@ -1796,6 +1811,19 @@ function editBeads(fn, live = false) {
   const sel = fn(beads);
   writeName(beads, sel == null || !beads.length ? null : Math.max(0, Math.min(sel, beads.length - 1)), live);
 }
+// clicking an automatic puck: every automatic puck becomes a real [puck] in the name, so each one can be selected and changed
+function unpackPucks(ti) {
+  let s = '', pending = false;
+  for (const t of built.tokens) {
+    if (t.auto) { pending = true; continue; }
+    s += t.gap + (pending ? '[puck]' : '') + t.src + (t.mod || ''); pending = false;
+  }
+  $('spacerPuck').checked = false;
+  $('name').value = s + (built.trailing || '');
+  selected = ti; // every bead is now a real one, in the same order
+  onChange('name'); snap();
+  status('The automatic pucks are now ordinary [puck] beads in the name, so you can change each one.');
+}
 // the moved bead joins the cord of the bead whose place it takes
 const moveBead = (from, to) => editBeads(s => { const line = s[to].line, [x] = s.splice(from, 1); x.line = line; s.splice(to, 0, x); return to; });
 
@@ -1915,6 +1943,7 @@ cv.addEventListener('pointerup', ev => {
   const click = downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) < 5;
   if (drag) {
     const { g, moved } = drag; drag = null; controls.enabled = true; cv.style.cursor = '';
+    if (!moved && g.userData.auto) { unpackPucks(g.userData.ti); return; }
     if (!moved) { selected = g.userData.auto ? null : g.userData.ri; if (g.userData.auto) status('This puck is added automatically. To edit pucks one by one, untick "Puck spacer between every bead" under Spacer beads.'); showSelection(); return; }
     // drop: take the slot of the nearest other real bead
     let best = null, bd = Infinity;
@@ -2390,7 +2419,7 @@ async function buildItems(p) {
   const font = await getFont(p);
   const { tokens, warn, trailing } = tokenize(p.name, p);
   const gkey = JSON.stringify([p.font, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop,
-    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg]);
+    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg, p.turnLetters]);
   if (beadCache.gkey !== gkey) { beadCache.clear(); freeBodies(); beadCache.gkey = gkey; }
   const items = [];
   // characters the font has no shape for (emoji, other scripts) would print as an empty box: leave those beads blank and say so
@@ -2415,6 +2444,7 @@ async function buildItems(p) {
           paths = offset(offset(ic.paths.map(pp => pp.map(q => ({ X: Math.round(q.X * k), Y: Math.round(q.Y * k) }))), 0.03), -0.03);
         }
       }
+      if (p.turnLetters && t.type === 'char') paths = paths.map(pp => pp.map(q => ({ X: q.Y, Y: -q.X }))); // a quarter turn clockwise: the name reads down the cord
       paths = fitGlyph(paths, p, beadBody(p));
       beadCache.set(key, buildBead(paths, p, t.label));
     }
@@ -2457,7 +2487,7 @@ function onChange(id) {
 let hist = [], hi = -1, histTimer = null, restoring = false;
 function snap() {
   clearTimeout(histTimer); histTimer = null;
-  const s = JSON.stringify(readParams());
+  const s = JSON.stringify(savedParams());
   if (s === hist[hi]) return;
   hist = hist.slice(0, hi + 1); hist.push(s);
   if (hist.length > 200) hist.shift();
@@ -2700,7 +2730,7 @@ document.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => {
 });
 // quick sets: replace the name with a stock set of beads (one undo step)
 const QUICK_SETS = {
-  common: () => 'AEILOMSHRCYNTDGB',
+  common: () => 'AAAAEEELLLLIIIOOORRRSSNNTTMMCH',
   // one of every bead on the Spacer beads tab
   spacers: () => [...document.querySelectorAll('[data-ins]')].map(b => b.dataset.ins).join(''),
   // one cord per group: letters, digits, then the spacer beads
@@ -2777,7 +2807,7 @@ $('fontFile').onchange = async e => {
 
 /* ---------------- settings persistence ---------------- */
 const LS = 'strung.v1'; // storage keys keep the old project name, so saved settings carry over
-function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(readParams())); } catch {} writeUrl(); }
+function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(savedParams())); } catch {} writeUrl(); }
 // share link: every setting that differs from the defaults goes in the URL after #, e.g. #name=MIA%0ALEO&diameter=45
 function urlState(p) {
   const d = defaults(), q = new URLSearchParams();
@@ -2791,7 +2821,7 @@ function urlState(p) {
   return q.toString();
 }
 function writeUrl() {
-  const s = urlState(readParams());
+  const s = urlState(savedParams());
   try { history.replaceState(null, '', s ? '#' + s : location.pathname + location.search); } catch {}
 }
 function readUrl() {
@@ -2812,7 +2842,7 @@ $('copyLink').onclick = async () => {
   catch { status('Copy the address bar: it holds this name and these settings.'); }
 };
 function loadLocal() { try { return JSON.parse(localStorage.getItem(LS)); } catch { return null; } }
-$('saveCfg').onclick = () => download(new Blob([JSON.stringify(readParams(), null, 2)], { type: 'application/json' }), 'strungcharms-settings.json');
+$('saveCfg').onclick = () => download(new Blob([JSON.stringify(savedParams(), null, 2)], { type: 'application/json' }), 'strungcharms-settings.json');
 $('loadCfgBtn').onclick = () => $('loadCfg').click();
 $('loadCfg').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
