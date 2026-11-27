@@ -25,27 +25,48 @@
     font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   #app { display: grid; grid-template-rows: auto auto 1fr; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
   #top { background: var(--panel); border-bottom: 1px solid var(--line); padding: 8px 14px 0; }
-  #top .bar { display: flex; align-items: flex-start; gap: 12px; }
-  #top h1, #top .namehint, #exp3mfTop { align-self: center; }
+  /* top bar: every control is 34 px tall and they share one centre line; the selling terms sit under the buttons on the right */
+  #top .bar { display: flex; align-items: flex-start; gap: 12px; --bh: 34px; }
+  #top h1 { height: var(--bh); display: flex; align-items: center; margin: 0; font-size: 16px; }
+  #quickSets { height: var(--bh); align-items: center; }
+  #top .namehint { line-height: var(--bh); }
+  #nameWrap #name { min-height: var(--bh); }
   #top h1 { margin: 0; white-space: nowrap; }
   #top #nameWrap { flex: 0 1 720px; min-width: 260px; position: relative; }
   #nameWrap #name { width: 100%; padding-right: 34px; }
-  #nameClear { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; padding: 0; border-radius: 50%; font-size: 16px; line-height: 1; }
-  #quickSets { display: flex; gap: 4px; align-self: center; white-space: nowrap; }
+  #nameClear { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; padding: 0; border-radius: 50%; font-size: 16px; line-height: 1; }
+  #quickSets { display: flex; gap: 4px; white-space: nowrap; }
   #top .namehint { flex: 1 1 0; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 1700px) { #top .namehint { visibility: hidden; } } /* too narrow to read: the same words are in the name box tooltip and the help */
-  @media (min-width: 801px) and (max-width: 1300px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #nameWrap { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
+  @media (min-width: 801px) and (max-width: 1600px) { #top .bar { flex-wrap: wrap; row-gap: 6px; } #top #nameWrap { order: 8; flex: 1 1 calc(100% - 330px); } #quickSets { order: 9; } } /* no room on one row: the name and its quick sets go on a second row */
   #topRight { margin-left: auto; display: flex; flex-direction: column; gap: 4px; }
-  #topRight .row1 { display: flex; align-items: flex-start; gap: 12px; }
+  #topRight .row1 { display: flex; align-items: center; gap: 8px; }
+  #topRight .row1 > button, #topRight .row1 > a, #top .undo button, #exp3mfTop { height: var(--bh); display: inline-flex; align-items: center; justify-content: center; padding: 0 12px; font-size: 13px; line-height: 1; white-space: nowrap; }
+  #topRight .row1 > a + a, #expTop { margin-left: 4px; }
   #topRight .terms { width: 0; min-width: 100%; margin: 0 0 2px; font-size: 11px; line-height: 1.3; color: var(--muted); text-align: right; } /* wraps to the width of the buttons above */
-  #top .undo { display: flex; gap: 4px; align-self: flex-start; }
-  #top .undo button { padding: 6px 10px; font-size: 16px; line-height: 1; }
+  #top .undo { display: flex; gap: 4px; }
+  #top .undo button { padding: 0 10px; font-size: 16px; }
   button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
-  #copyLink, #shot { white-space: nowrap; align-self: flex-start; }
   :focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
   #tabs button:focus-visible { outline-offset: -2px; }
   #shotDlg, #helpDlg { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 14px; max-width: min(1200px, 94vw); }
-  #shotDlg::backdrop, #helpDlg::backdrop { background: #000a; }
+  #shotDlg::backdrop, #helpDlg::backdrop, #wizDlg::backdrop { background: #000a; }
+  #wizDlg { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 16px; width: min(760px, 94vw); }
+  #wizBody { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+  #wizSide { max-width: 320px; } #wizCap { margin: 6px 0 0; font-size: 12px; }
+  #wizCv { display: block; width: 100%; aspect-ratio: 32 / 38; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  @media (max-width: 640px) { #wizBody { grid-template-columns: 1fr; } #wizSide { justify-self: center; } }
+  #wizDlg h2 { font-size: 15px; margin: 0 0 2px; }
+  #wizStep { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+  #wizAuto { margin: -6px 0 12px; }
+  #wizDlg fieldset { border: 0; padding: 0; margin: 0; }
+  #wizDlg legend { font-weight: 600; margin-bottom: 8px; padding: 0; }
+  #wizDlg .opt { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: 7px; cursor: pointer; }
+  #wizDlg .opt:has(input:checked) { border-color: var(--accent); background: #1f9e8f1f; }
+  #wizDlg .opt input { margin-top: 3px; accent-color: var(--accent); }
+  #wizDlg .opt small { display: block; color: var(--muted); }
+  #wizDlg .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  #wizDlg .btns .grow { margin-right: auto; }
   #shotDlg img { display: block; max-width: 100%; max-height: 72vh; border-radius: 6px; }
   #shotDlg .btns, #helpDlg .btns { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 12px; }
   #helpDlg { width: min(520px, 94vw); max-height: 88vh; overflow-y: auto; scrollbar-color: var(--line) transparent; }
@@ -55,13 +76,22 @@
   #helpDlg dd { margin: 0; color: var(--muted); }
   #helpDlg ol { margin: 0; padding-left: 20px; color: var(--muted); }
   kbd { font: inherit; font-size: 12px; background: #14151a; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
-  #donate { white-space: nowrap; align-self: flex-start; padding: 6px 12px; border-radius: 6px; background: #ffc439; color: #111; font-weight: 600; font-size: 13px; text-decoration: none; }
+  #donate { border-radius: 7px; background: #ffc439; color: #111; font-weight: 600; text-decoration: none; }
   #donate:hover { background: #f2b51f; }
-  #makerworld { white-space: nowrap; align-self: flex-start; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); color: var(--text); font-weight: 600; font-size: 13px; text-decoration: none; }
+  #makerworld { border-radius: 7px; border: 1px solid var(--line); color: var(--text); font-weight: 600; text-decoration: none; }
   #makerworld:hover { border-color: var(--accent2); color: var(--accent2); }
-  #exp3mfTop { white-space: nowrap; }
-  #expTop { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: flex-start; } /* the top-right buttons line up along their tops */
-  #expTop .check { font-size: 11px; white-space: nowrap; }
+  #expTop { display: flex; align-items: center; gap: 8px; }
+  #expTop .check { font-size: 12px; white-space: nowrap; margin: 0; }
+  #emojiFind { width: min(320px, 100%); margin: 8px 0 2px; }
+  #emojiList button[hidden], #emojiList section[hidden] { display: none; }
+  #emojiList h3 { font-size: 12px; margin: 10px 0 4px; color: var(--muted); font-weight: 600; }
+  #emojiList .grid { display: grid; grid-template-columns: repeat(auto-fill, 34px); gap: 2px; }
+  /* emoji tab: the hint and search on the left, the emoji beside them, 27 to a row */
+  .pane[data-tab="emoji"] .sec { columns: auto; display: grid; grid-template-columns: minmax(0, 380px) auto; grid-template-rows: auto 1fr; column-gap: 32px; align-items: start; }
+  .pane[data-tab="emoji"] #emojiList { grid-column: 2; grid-row: 1 / span 2; width: min(970px, 100%); }
+  @media (max-width: 1400px) { .pane[data-tab="emoji"] .sec { display: block; } }
+  #emojiList button { background: transparent; border: 1px solid transparent; padding: 2px; width: 34px; height: 34px; font-size: 22px; line-height: 1; border-radius: 6px; font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; }
+  #emojiList button:hover { border-color: var(--line); background: #ffffff0a; }
   #tabs { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
   #tabs [role=tablist] { display: flex; gap: 2px; }
   #tabs button { background: transparent; color: var(--muted); border-radius: 7px 7px 0 0; padding: 7px 14px; font-weight: 600; white-space: nowrap; border-bottom: 2px solid transparent; }
@@ -87,7 +117,7 @@
   input[type=range] { width: 100%; accent-color: var(--accent); }
   input[type=file] { width: 100%; min-width: 0; font: inherit; color: var(--muted); }
   input[type=color] { width: 100%; height: 28px; border: 1px solid var(--line); border-radius: 6px; background: #14151a; padding: 2px; }
-  #name { font-size: 16px; padding: 8px 10px; resize: none; line-height: 1.35; overflow-y: auto; display: block; }
+  #name { font-size: 16px; padding: 5px 10px; resize: none; line-height: 1.35; overflow-y: auto; display: block; }
   button { background: var(--accent); color: #fff; border: 0; border-radius: 7px; padding: 8px 12px; font: inherit; font-weight: 600; cursor: pointer; }
   button:hover { background: var(--accent2); }
   button.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); font-weight: 500; }
@@ -117,6 +147,10 @@
   .bpCols { display: flex; gap: 6px; align-items: center; }
   .hint { color: var(--muted); font-size: 12px; margin: 4px 0; }
   .check { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+  /* progress bar over the preview while many new beads build (the page would otherwise look frozen) */
+  #progress { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 5; width: min(360px, calc(100% - 32px)); padding: 14px 16px; border-radius: 10px; background: #000c; border: 1px solid var(--line); font-size: 13px; }
+  #progress .track { height: 8px; margin-top: 8px; border-radius: 4px; background: #fff2; overflow: hidden; }
+  #progressBar { height: 100%; width: 0; background: var(--accent, #1fb5a0); transition: width .1s; }
   #status { position: absolute; left: 12px; bottom: 10px; color: var(--muted); font-size: 12px; background: #0009; padding: 4px 8px; border-radius: 6px; }
   #status.err { color: var(--err); }
   #dims { position: absolute; left: 12px; top: 10px; background: #0009; padding: 6px 10px; border-radius: 6px; font-variant-numeric: tabular-nums; }
@@ -155,6 +189,7 @@
   @media (max-width: 800px) {
     #top { padding: 8px 10px 0; }
     #top .bar { flex-wrap: wrap; gap: 8px; }
+    #topRight .row1 { flex-wrap: wrap; }
     #top #nameWrap { flex: 1 1 100%; order: 3; }
     #top .namehint { display: none; }
     #quickSets { order: 4; }
@@ -189,24 +224,25 @@ addEventListener('error', ev => {
     <div class="bar">
       <h1>StrungCharms</h1>
       <div id="nameWrap"><textarea id="name" rows="1" maxlength="2000" spellcheck="false" aria-label="Name" title="One bead per letter. Enter starts the next cord. Spacer beads go in brackets, like [heart]." placeholder="Type a name… (Enter = next cord)">[heart-bead]C[puck]H[puck]E[puck]E[puck]R[bow]</textarea><button id="nameClear" class="ghost" type="button" title="Clear the name" aria-label="Clear the name">×</button></div>
-      <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with a stock of the most used letters (30 beads): A A A A E E E L L L L I I I O O O R R R S S N N T T M M C H">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button></div>
+      <div id="quickSets" role="group" aria-label="Quick sets"><button class="ghost small" data-set="common" title="Replaces the name with a stock of the most used letters (30 beads): A A A A E E E L L L L I I I O O O R R R S S N N T T M M C H">Common letters</button><button class="ghost small" data-set="spacers" title="Replaces the name with one of every spacer bead: puck, barrel, heart, bow, cube, star and the other shapes">Spacer beads</button><button class="ghost small" data-set="all" title="Replaces the name with A to Z, 0 to 9 and one of every spacer bead">Every bead</button><button class="ghost small" data-set="emoji" title="Replaces the name with 60 smileys and people emoji picked at random from the Emoji tab (four cords of 15, about four build plates). Press again for a different 60.">Random emoji</button></div>
       <div class="hint namehint">One bead per letter, one cord per line. Spacer beads in brackets, e.g. <code>MIA [heart]</code> or <code>[star] SAM</code>.</div>
       <div id="topRight"><div class="row1">
+      <button id="wizBtn" class="ghost" title="Answer a few questions to set the bead size, spacer beads, cord, letter sides and direction" aria-haspopup="dialog">Setup wizard</button>
       <div class="undo">
         <button id="undoBtn" class="ghost" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button id="redoBtn" class="ghost" title="Redo (Ctrl+Shift+Z or Ctrl+Y)" aria-label="Redo" disabled>↷</button>
       </div>
-      <a id="donate" href="https://www.paypal.com/donate/?hosted_button_id=PZVZSNGSJVZF8" target="_blank" rel="noopener" title="Support StrungCharms via PayPal">♥ Donate</a>
-      <a id="makerworld" href="https://makerworld.com/en/@user_4006107580" target="_blank" rel="noopener" title="Free ways to help: like, rate or boost my models on MakerWorld">Like &amp; boost on MakerWorld</a>
       <button id="shot" class="ghost" title="Take a picture of the preview to copy or download">Screenshot</button>
       <button id="copyLink" class="ghost" title="Copy a link that opens this name with these settings">Copy link</button>
+      <a id="donate" href="https://www.paypal.com/donate/?hosted_button_id=PZVZSNGSJVZF8" target="_blank" rel="noopener" title="Support StrungCharms via PayPal">♥ Donate</a>
+      <a id="makerworld" href="https://makerworld.com/en/@user_4006107580" target="_blank" rel="noopener" title="Free ways to help: like, rate or boost my models on MakerWorld">Like &amp; boost on MakerWorld</a>
       <div id="expTop">
-        <button id="exp3mfTop" title="Download the print file (3MF) to open in your slicer. Pick your printer under Printer &amp; export first.">Export 3MF</button>
         <label class="check" title="Turns every bead over so the letter face prints on the bed and comes out smooth (not for raised letters)"><input type="checkbox" id="faceDownTop"> Print face down</label>
+        <button id="exp3mfTop" title="Download the print file (3MF) to open in your slicer. Pick your printer under Printer &amp; export first.">Export 3MF</button>
       </div>
       </div><p class="terms">You may sell the beads you print. Do not upload the exported files (3MF or STL) to MakerWorld or any other model-sharing site that pays or rewards uploads, and do not share or sell the files for profit.</p></div>
     </div>
-    <div id="firstHint" class="hint" role="note" hidden><span><b>Start here:</b> type a name in the box above. Each letter becomes a bead; the words in brackets, like <code>[puck]</code>, are spacer beads you can delete. Then go through the tabs from left to right and finish with <b>Export 3MF</b>.</span><button class="ghost small" id="firstHintOk">Got it</button></div>
-    <nav id="tabs" aria-label="Settings"><div role="tablist" aria-label="Settings sections"><button data-tab="extras" role="tab">Spacer beads</button><button data-tab="bead" role="tab">Bead</button><button data-tab="hole" role="tab">Cord hole</button><button data-tab="letter" role="tab">Letter</button><button data-tab="colours" role="tab">Colours</button><button data-tab="export" role="tab">Printer &amp; export</button><button data-tab="settings" role="tab">Settings</button></div><button id="tabHide" class="hide" title="Hide settings (click a tab to reopen)" aria-label="Hide settings">▴</button></nav>
+    <div id="firstHint" class="hint" role="note" hidden><span><b>Start here:</b> type a name in the box above. Each letter becomes a bead; the words in brackets, like <code>[puck]</code>, are spacer beads you can delete. Then go through the tabs from left to right and finish with <b>Export 3MF</b>.</span><button class="ghost small" id="firstHintWiz">Setup wizard</button><button class="ghost small" id="firstHintOk">Got it</button></div>
+    <nav id="tabs" aria-label="Settings"><div role="tablist" aria-label="Settings sections"><button data-tab="extras" role="tab">Spacer beads</button><button data-tab="emoji" role="tab">Emoji</button><button data-tab="bead" role="tab">Bead</button><button data-tab="hole" role="tab">Cord hole</button><button data-tab="letter" role="tab">Letter</button><button data-tab="colours" role="tab">Colours</button><button data-tab="export" role="tab">Printer &amp; export</button><button data-tab="settings" role="tab">Settings</button></div><button id="tabHide" class="hide" title="Hide settings (click a tab to reopen)" aria-label="Hide settings">▴</button></nav>
   </header>
   <div id="panel">
     <section class="pane" data-tab="bead" role="tabpanel" hidden>
@@ -249,7 +285,6 @@ addEventListener('error', ev => {
           <select id="holeAxis">
             <option value="x">Side to side: name reads across</option>
             <option value="y">Top to bottom: name hangs vertically</option>
-            <option value="yr">Top to bottom, letters turned: name reads down the cord</option>
             <option value="none">No hole</option>
           </select></div>
         <div id="holeCtl"></div>
@@ -273,9 +308,16 @@ addEventListener('error', ev => {
         <div class="hint">Inlay and Raised print the letter in a second filament, so they suit a multi-colour printer (AMS or similar). One filament only? Choose Engraved.</div>
         <div id="letterCtl"></div>
         <div class="row wide"><span></span><label class="check"><input type="checkbox" id="upper" checked> UPPERCASE letters</label></div>
-        <div class="row wide"><span></span><label class="check"><input type="checkbox" id="backLetter"> Letter on the back too (inlay / engraved)</label></div>
+        <div class="row wide"><span></span><label class="check" title="Puts the letter on the bottom face as well, so the bead reads from both sides. Inlay and Engraved only; raised letters stay on the top."><input type="checkbox" id="backLetter"> Double-sided: letter on the top and bottom (inlay / engraved)</label></div>
         <div class="row wide"><span></span><label class="check"><input type="checkbox" id="blankSpace"> Spaces become blank beads</label></div>
         <details class="adv" id="advLetter"><summary>Advanced</summary></details>
+      </div>
+    </section>
+    <section class="pane" data-tab="emoji" role="tabpanel" hidden>
+      <div class="sec">
+        <div class="hint">Click an emoji to add it where the cursor is in the name box, or type or paste emoji straight into the name. Each one becomes a bead with the emoji inlaid like a letter, in one colour: the shape comes from Google's Noto Emoji font, so it prints as an outline drawing, not in colour. Emoji made of several joined emoji (families, flags) show only the first one.</div>
+        <input id="emojiFind" type="search" placeholder="Find an emoji: cat, heart, ball…" aria-label="Find an emoji" autocomplete="off">
+        <div id="emojiList"></div>
       </div>
     </section>
     <section class="pane" data-tab="extras" role="tabpanel" hidden>
@@ -297,6 +339,7 @@ addEventListener('error', ev => {
           <button class="ghost small" data-ins="[football-bead]">Football</button>
           <button class="ghost small" data-ins="[basketball-bead]">Basketball</button>
           <button class="ghost small" data-ins="[soccer-bead]">Soccer ball</button>
+          <button class="ghost small" data-ins="[baseball-bead]">Baseball</button>
           <button class="ghost small" data-ins="[smiley-bead]">Smiley</button> <button class="ghost small" data-ins="[duck-bead]">Duck</button> <button class="ghost small" data-ins="[roundbow-bead]">Round bow</button>
           <button class="ghost small" data-ins="[bear-bead]">Bear</button> <button class="ghost small" data-ins="[cat-bead]">Cat</button> <button class="ghost small" data-ins="[bunny-bead]">Bunny</button> <button class="ghost small" data-ins="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-ins="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-ins="[fire-bead]">Fire</button> <button class="ghost small" data-ins="[bulldog-bead]">Bulldog</button>
         </div>
@@ -379,6 +422,7 @@ addEventListener('error', ev => {
     <div id="dims"></div>
     <div id="warn" role="status" aria-live="polite"></div>
     <div id="status" role="status" aria-live="polite">Loading…</div>
+    <div id="progress" hidden><div id="progressText">Building beads…</div><div class="track"><div id="progressBar"></div></div></div>
     <div id="empty" hidden>Type a name in the box above to see your beads.<br><small>One bead per letter, one cord per line.</small></div>
     <div id="done" role="status" aria-live="polite" hidden><button class="ghost small x" id="doneClose" title="Close" aria-label="Close this note">×</button><b id="doneTitle"></b><div id="doneFil"></div><ol id="doneSteps"></ol><p class="terms">You may sell the beads you print. Do not upload the exported files (3MF or STL) to MakerWorld or any other model-sharing site that pays or rewards uploads, and do not share or sell the files for profit.</p></div>
     <div id="modebtns" role="group" aria-label="Preview">
@@ -411,6 +455,7 @@ addEventListener('error', ev => {
         <button class="ghost small" data-bp="[football-bead]">Football</button>
         <button class="ghost small" data-bp="[basketball-bead]">Basketball</button>
         <button class="ghost small" data-bp="[soccer-bead]">Soccer ball</button>
+        <button class="ghost small" data-bp="[baseball-bead]">Baseball</button>
         <button class="ghost small" data-bp="[smiley-bead]">Smiley</button> <button class="ghost small" data-bp="[duck-bead]">Duck</button> <button class="ghost small" data-bp="[roundbow-bead]">Round bow</button>
         <button class="ghost small" data-bp="[bear-bead]">Bear</button> <button class="ghost small" data-bp="[cat-bead]">Cat</button> <button class="ghost small" data-bp="[bunny-bead]">Bunny</button> <button class="ghost small" data-bp="[ladybug-bead]">Ladybug</button> <button class="ghost small" data-bp="[cupcake-bead]">Cupcake</button> <button class="ghost small" data-bp="[fire-bead]">Fire</button> <button class="ghost small" data-bp="[bulldog-bead]">Bulldog</button>
         <button class="ghost small" data-bp="[blank]">Blank</button>
@@ -441,6 +486,20 @@ addEventListener('error', ev => {
     <button id="shotSave">Download</button>
     <button id="shotClose" class="ghost">Close</button>
   </div>
+</dialog>
+<dialog id="wizDlg" aria-labelledby="wizTitle">
+  <h2 id="wizTitle">Setup wizard</h2>
+  <p id="wizStep"></p>
+  <p id="wizAuto" class="hint" hidden>This opens when the page loads. You can open it any time with the <b>Setup wizard</b> button at the top.</p>
+  <form id="wizForm" method="dialog"><div id="wizBody"><fieldset id="wizQ"></fieldset>
+    <div id="wizSide"><canvas id="wizCv" role="img" aria-label="Sketch of the beads with these answers"></canvas><p id="wizCap" class="hint" aria-live="polite"></p></div></div>
+    <div class="btns">
+      <button type="button" class="ghost" id="wizCancel">Cancel</button>
+      <button type="button" class="ghost grow" id="wizNever" hidden title="Stop opening the wizard when the page loads. The Setup wizard button at the top still opens it.">Don't show again</button>
+      <button type="button" class="ghost" id="wizBack">Back</button>
+      <button type="submit" id="wizNext">Next</button>
+    </div>
+  </form>
 </dialog>
 <dialog id="helpDlg" aria-labelledby="helpTitle">
   <h2 id="helpTitle">Help</h2>
@@ -626,13 +685,34 @@ function parseSvgIcon(svgText) {
     }
   }
   if (!contours.length) return null;
+  return unitIcon(contours, evenodd);
+}
+// emoji print as one-colour shapes, taken from Google's monochrome Noto Emoji font (loaded only when a name has an emoji)
+const EMOJI_FONT = GF + 'ofl/notoemoji/NotoEmoji%5Bwght%5D.ttf';
+let emojiFont = null;
+const loadEmojiFont = () => emojiFont ??= fetch(EMOJI_FONT).then(r => { if (!r.ok) throw new Error(`Could not load font Noto Emoji (HTTP ${r.status})`); return r.arrayBuffer(); })
+  .then(b => opentype.parse(b)).catch(e => { emojiFont = null; throw e; });
+// a character that becomes an emoji bead (not ©, ®, ™ or arrows, which letter fonts carry)
+const isEmoji = ch => /\p{Extended_Pictographic}/u.test(ch) && ch.codePointAt(0) >= 0x2300;
+// every single emoji Noto Emoji draws, by Unicode group (from emoji-test.txt): the emoji followed by its name, | between them
+const EMOJI = {
+ "Smileys and Emotion": "😀grinning face|😃grinning face with big eyes|😄grinning face with smiling eyes|😁beaming face with smiling eyes|😆grinning squinting face|😅grinning face with sweat|🤣rolling on the floor laughing|😂face with tears of joy|🙂slightly smiling face|🙃upside-down face|🫠melting face|😉winking face|😊smiling face with smiling eyes|😇smiling face with halo|🥰smiling face with hearts|😍smiling face with heart-eyes|🤩star-struck|😘face blowing a kiss|😗kissing face|☺smiling face|😚kissing face with closed eyes|😙kissing face with smiling eyes|🥲smiling face with tear|😋face savoring food|😛face with tongue|😜winking face with tongue|🤪zany face|😝squinting face with tongue|🤑money-mouth face|🤗smiling face with open hands|🤭face with hand over mouth|🫢face with open eyes and hand over mouth|🫣face with peeking eye|🤫shushing face|🤔thinking face|🫡saluting face|🤐zipper-mouth face|🤨face with raised eyebrow|😐neutral face|😑expressionless face|😶face without mouth|🫥dotted line face|😏smirking face|😒unamused face|🙄face with rolling eyes|😬grimacing face|🤥lying face|🫨shaking face|😌relieved face|😔pensive face|😪sleepy face|🤤drooling face|😴sleeping face|😷face with medical mask|🤒face with thermometer|🤕face with head-bandage|🤢nauseated face|🤮face vomiting|🤧sneezing face|🥵hot face|🥶cold face|🥴woozy face|😵face with crossed-out eyes|🤯exploding head|🤠cowboy hat face|🥳partying face|🥸disguised face|😎smiling face with sunglasses|🤓nerd face|🧐face with monocle|😕confused face|🫤face with diagonal mouth|😟worried face|🙁slightly frowning face|☹frowning face|😮face with open mouth|😯hushed face|😲astonished face|😳flushed face|🥺pleading face|🥹face holding back tears|😦frowning face with open mouth|😧anguished face|😨fearful face|😰anxious face with sweat|😥sad but relieved face|😢crying face|😭loudly crying face|😱face screaming in fear|😖confounded face|😣persevering face|😞disappointed face|😓downcast face with sweat|😩weary face|😫tired face|🥱yawning face|😤face with steam from nose|😡enraged face|😠angry face|🤬face with symbols on mouth|😈smiling face with horns|👿angry face with horns|💀skull|☠skull and crossbones|💩pile of poo|🤡clown face|👹ogre|👺goblin|👻ghost|👽alien|👾alien monster|🤖robot|😺grinning cat|😸grinning cat with smiling eyes|😹cat with tears of joy|😻smiling cat with heart-eyes|😼cat with wry smile|😽kissing cat|🙀weary cat|😿crying cat|😾pouting cat|🙈see-no-evil monkey|🙉hear-no-evil monkey|🙊speak-no-evil monkey|💌love letter|💘heart with arrow|💝heart with ribbon|💖sparkling heart|💗growing heart|💓beating heart|💞revolving hearts|💕two hearts|💟heart decoration|❣heart exclamation|💔broken heart|🩷pink heart|🧡orange heart|💛yellow heart|💚green heart|💙blue heart|🩵light blue heart|💜purple heart|🤎brown heart|🖤black heart|🩶grey heart|🤍white heart|💋kiss mark|💯hundred points|💢anger symbol|💥collision|💫dizzy|💦sweat droplets|💨dashing away|🕳hole|💬speech balloon|🗨left speech bubble|🗯right anger bubble|💭thought balloon|💤ZZZ",
+ "People and Body": "👋waving hand|🤚raised back of hand|🖐hand with fingers splayed|✋raised hand|🖖vulcan salute|🫱rightwards hand|🫲leftwards hand|🫳palm down hand|🫴palm up hand|🫷leftwards pushing hand|🫸rightwards pushing hand|👌OK hand|🤌pinched fingers|🤏pinching hand|✌victory hand|🤞crossed fingers|🫰hand with index finger and thumb crossed|🤟love-you gesture|🤘sign of the horns|🤙call me hand|👈backhand index pointing left|👉backhand index pointing right|👆backhand index pointing up|🖕middle finger|👇backhand index pointing down|☝index pointing up|🫵index pointing at the viewer|👍thumbs up|👎thumbs down|✊raised fist|👊oncoming fist|🤛left-facing fist|🤜right-facing fist|👏clapping hands|🙌raising hands|🫶heart hands|👐open hands|🤲palms up together|🤝handshake|🙏folded hands|✍writing hand|💅nail polish|🤳selfie|💪flexed biceps|🦾mechanical arm|🦿mechanical leg|🦵leg|🦶foot|👂ear|🦻ear with hearing aid|👃nose|🧠brain|🫀anatomical heart|🫁lungs|🦷tooth|🦴bone|👀eyes|👁eye|👅tongue|👄mouth|🫦biting lip|👶baby|🧒child|👦boy|👧girl|🧑person|👱person: blond hair|👨man|🧔person: beard|👩woman|🧓older person|👴old man|👵old woman|🙍person frowning|🙎person pouting|🙅person gesturing NO|🙆person gesturing OK|💁person tipping hand|🙋person raising hand|🧏deaf person|🙇person bowing|🤦person facepalming|🤷person shrugging|👮police officer|🕵detective|💂guard|🥷ninja|👷construction worker|🫅person with crown|🤴prince|👸princess|👳person wearing turban|👲person with skullcap|🧕woman with headscarf|🤵person in tuxedo|👰person with veil|🤰pregnant woman|🫃pregnant man|🫄pregnant person|🤱breast-feeding|👼baby angel|🎅Santa Claus|🤶Mrs. Claus|🦸superhero|🦹supervillain|🧙mage|🧚fairy|🧛vampire|🧜merperson|🧝elf|🧞genie|🧟zombie|🧌troll|💆person getting massage|💇person getting haircut|🚶person walking|🧍person standing|🧎person kneeling|🏃person running|💃woman dancing|🕺man dancing|🕴person in suit levitating|👯people with bunny ears|🧖person in steamy room|🧗person climbing|🤺person fencing|🏇horse racing|⛷skier|🏂snowboarder|🏌person golfing|🏄person surfing|🚣person rowing boat|🏊person swimming|⛹person bouncing ball|🏋person lifting weights|🚴person biking|🚵person mountain biking|🤸person cartwheeling|🤼people wrestling|🤽person playing water polo|🤾person playing handball|🤹person juggling|🧘person in lotus position|🛀person taking bath|🛌person in bed|👭women holding hands|👫woman and man holding hands|👬men holding hands|💏kiss|💑couple with heart|🗣speaking head|👤bust in silhouette|👥busts in silhouette|🫂people hugging|👪family|👣footprints",
+ "Animals and Nature": "🐵monkey face|🐒monkey|🦍gorilla|🦧orangutan|🐶dog face|🐕dog|🦮guide dog|🐩poodle|🐺wolf|🦊fox|🦝raccoon|🐱cat face|🐈cat|🦁lion|🐯tiger face|🐅tiger|🐆leopard|🐴horse face|🫎moose|🫏donkey|🐎horse|🦄unicorn|🦓zebra|🦌deer|🦬bison|🐮cow face|🐂ox|🐃water buffalo|🐄cow|🐷pig face|🐖pig|🐗boar|🐽pig nose|🐏ram|🐑ewe|🐐goat|🐪camel|🐫two-hump camel|🦙llama|🦒giraffe|🐘elephant|🦣mammoth|🦏rhinoceros|🦛hippopotamus|🐭mouse face|🐁mouse|🐀rat|🐹hamster|🐰rabbit face|🐇rabbit|🐿chipmunk|🦫beaver|🦔hedgehog|🦇bat|🐻bear|🐨koala|🐼panda|🦥sloth|🦦otter|🦨skunk|🦘kangaroo|🦡badger|🐾paw prints|🦃turkey|🐔chicken|🐓rooster|🐣hatching chick|🐤baby chick|🐥front-facing baby chick|🐦bird|🐧penguin|🕊dove|🦅eagle|🦆duck|🦢swan|🦉owl|🦤dodo|🪶feather|🦩flamingo|🦚peacock|🦜parrot|🪽wing|🪿goose|🐸frog|🐊crocodile|🐢turtle|🦎lizard|🐍snake|🐲dragon face|🐉dragon|🦕sauropod|🦖T-Rex|🐳spouting whale|🐋whale|🐬dolphin|🦭seal|🐟fish|🐠tropical fish|🐡blowfish|🦈shark|🐙octopus|🐚spiral shell|🪸coral|🪼jellyfish|🦀crab|🦞lobster|🦐shrimp|🦑squid|🦪oyster|🐌snail|🦋butterfly|🐛bug|🐜ant|🐝honeybee|🪲beetle|🐞lady beetle|🦗cricket|🪳cockroach|🕷spider|🕸spider web|🦂scorpion|🦟mosquito|🪰fly|🪱worm|🦠microbe|💐bouquet|🌸cherry blossom|💮white flower|🪷lotus|🏵rosette|🌹rose|🥀wilted flower|🌺hibiscus|🌻sunflower|🌼blossom|🌷tulip|🪻hyacinth|🌱seedling|🪴potted plant|🌲evergreen tree|🌳deciduous tree|🌴palm tree|🌵cactus|🌾sheaf of rice|🌿herb|☘shamrock|🍀four leaf clover|🍁maple leaf|🍂fallen leaf|🍃leaf fluttering in wind|🪹empty nest|🪺nest with eggs|🍄mushroom",
+ "Food and Drink": "🍇grapes|🍈melon|🍉watermelon|🍊tangerine|🍋lemon|🍌banana|🍍pineapple|🥭mango|🍎red apple|🍏green apple|🍐pear|🍑peach|🍒cherries|🍓strawberry|🫐blueberries|🥝kiwi fruit|🍅tomato|🫒olive|🥥coconut|🥑avocado|🍆eggplant|🥔potato|🥕carrot|🌽ear of corn|🌶hot pepper|🫑bell pepper|🥒cucumber|🥬leafy green|🥦broccoli|🧄garlic|🧅onion|🥜peanuts|🫘beans|🌰chestnut|🫚ginger root|🫛pea pod|🍞bread|🥐croissant|🥖baguette bread|🫓flatbread|🥨pretzel|🥯bagel|🥞pancakes|🧇waffle|🧀cheese wedge|🍖meat on bone|🍗poultry leg|🥩cut of meat|🥓bacon|🍔hamburger|🍟french fries|🍕pizza|🌭hot dog|🥪sandwich|🌮taco|🌯burrito|🫔tamale|🥙stuffed flatbread|🧆falafel|🥚egg|🍳cooking|🥘shallow pan of food|🍲pot of food|🫕fondue|🥣bowl with spoon|🥗green salad|🍿popcorn|🧈butter|🧂salt|🥫canned food|🍱bento box|🍘rice cracker|🍙rice ball|🍚cooked rice|🍛curry rice|🍜steaming bowl|🍝spaghetti|🍠roasted sweet potato|🍢oden|🍣sushi|🍤fried shrimp|🍥fish cake with swirl|🥮moon cake|🍡dango|🥟dumpling|🥠fortune cookie|🥡takeout box|🍦soft ice cream|🍧shaved ice|🍨ice cream|🍩doughnut|🍪cookie|🎂birthday cake|🍰shortcake|🧁cupcake|🥧pie|🍫chocolate bar|🍬candy|🍭lollipop|🍮custard|🍯honey pot|🍼baby bottle|🥛glass of milk|☕hot beverage|🫖teapot|🍵teacup without handle|🍶sake|🍾bottle with popping cork|🍷wine glass|🍸cocktail glass|🍹tropical drink|🍺beer mug|🍻clinking beer mugs|🥂clinking glasses|🥃tumbler glass|🫗pouring liquid|🥤cup with straw|🧋bubble tea|🧃beverage box|🧉mate|🧊ice|🥢chopsticks|🍽fork and knife with plate|🍴fork and knife|🥄spoon|🔪kitchen knife|🫙jar|🏺amphora",
+ "Travel and Places": "🌍globe showing Europe-Africa|🌎globe showing Americas|🌏globe showing Asia-Australia|🌐globe with meridians|🗺world map|🗾map of Japan|🧭compass|🏔snow-capped mountain|⛰mountain|🌋volcano|🗻mount fuji|🏕camping|🏖beach with umbrella|🏜desert|🏝desert island|🏞national park|🏟stadium|🏛classical building|🏗building construction|🧱brick|🪨rock|🪵wood|🛖hut|🏘houses|🏚derelict house|🏠house|🏡house with garden|🏢office building|🏣Japanese post office|🏤post office|🏥hospital|🏦bank|🏨hotel|🏩love hotel|🏪convenience store|🏫school|🏬department store|🏭factory|🏯Japanese castle|🏰castle|💒wedding|🗼Tokyo tower|🗽Statue of Liberty|⛪church|🕌mosque|🛕hindu temple|🕍synagogue|⛩shinto shrine|🕋kaaba|⛲fountain|⛺tent|🌁foggy|🌃night with stars|🏙cityscape|🌄sunrise over mountains|🌅sunrise|🌆cityscape at dusk|🌇sunset|🌉bridge at night|♨hot springs|🎠carousel horse|🛝playground slide|🎡ferris wheel|🎢roller coaster|💈barber pole|🎪circus tent|🚂locomotive|🚃railway car|🚄high-speed train|🚅bullet train|🚆train|🚇metro|🚈light rail|🚉station|🚊tram|🚝monorail|🚞mountain railway|🚋tram car|🚌bus|🚍oncoming bus|🚎trolleybus|🚐minibus|🚑ambulance|🚒fire engine|🚓police car|🚔oncoming police car|🚕taxi|🚖oncoming taxi|🚗automobile|🚘oncoming automobile|🚙sport utility vehicle|🛻pickup truck|🚚delivery truck|🚛articulated lorry|🚜tractor|🏎racing car|🏍motorcycle|🛵motor scooter|🦽manual wheelchair|🦼motorized wheelchair|🛺auto rickshaw|🚲bicycle|🛴kick scooter|🛹skateboard|🛼roller skate|🚏bus stop|🛣motorway|🛤railway track|🛢oil drum|⛽fuel pump|🛞wheel|🚨police car light|🚥horizontal traffic light|🚦vertical traffic light|🛑stop sign|🚧construction|⚓anchor|🛟ring buoy|⛵sailboat|🛶canoe|🚤speedboat|🛳passenger ship|⛴ferry|🛥motor boat|🚢ship|✈airplane|🛩small airplane|🛫airplane departure|🛬airplane arrival|🪂parachute|💺seat|🚁helicopter|🚟suspension railway|🚠mountain cableway|🚡aerial tramway|🛰satellite|🚀rocket|🛸flying saucer|🛎bellhop bell|🧳luggage|⌛hourglass done|⏳hourglass not done|⌚watch|⏰alarm clock|⏱stopwatch|⏲timer clock|🕰mantelpiece clock|🕛twelve o’clock|🕧twelve-thirty|🕐one o’clock|🕜one-thirty|🕑two o’clock|🕝two-thirty|🕒three o’clock|🕞three-thirty|🕓four o’clock|🕟four-thirty|🕔five o’clock|🕠five-thirty|🕕six o’clock|🕡six-thirty|🕖seven o’clock|🕢seven-thirty|🕗eight o’clock|🕣eight-thirty|🕘nine o’clock|🕤nine-thirty|🕙ten o’clock|🕥ten-thirty|🕚eleven o’clock|🕦eleven-thirty|🌑new moon|🌒waxing crescent moon|🌓first quarter moon|🌔waxing gibbous moon|🌕full moon|🌖waning gibbous moon|🌗last quarter moon|🌘waning crescent moon|🌙crescent moon|🌚new moon face|🌛first quarter moon face|🌜last quarter moon face|🌡thermometer|☀sun|🌝full moon face|🌞sun with face|🪐ringed planet|⭐star|🌟glowing star|🌠shooting star|🌌milky way|☁cloud|⛅sun behind cloud|⛈cloud with lightning and rain|🌤sun behind small cloud|🌥sun behind large cloud|🌦sun behind rain cloud|🌧cloud with rain|🌨cloud with snow|🌩cloud with lightning|🌪tornado|🌫fog|🌬wind face|🌀cyclone|🌈rainbow|🌂closed umbrella|☂umbrella|☔umbrella with rain drops|⛱umbrella on ground|⚡high voltage|❄snowflake|☃snowman|⛄snowman without snow|☄comet|🔥fire|💧droplet|🌊water wave",
+ "Activities": "🎃jack-o-lantern|🎄Christmas tree|🎆fireworks|🎇sparkler|🧨firecracker|✨sparkles|🎈balloon|🎉party popper|🎊confetti ball|🎋tanabata tree|🎍pine decoration|🎎Japanese dolls|🎏carp streamer|🎐wind chime|🎑moon viewing ceremony|🧧red envelope|🎀ribbon|🎁wrapped gift|🎗reminder ribbon|🎟admission tickets|🎫ticket|🎖military medal|🏆trophy|🏅sports medal|🥇1st place medal|🥈2nd place medal|🥉3rd place medal|⚽soccer ball|⚾baseball|🥎softball|🏀basketball|🏐volleyball|🏈american football|🏉rugby football|🎾tennis|🥏flying disc|🎳bowling|🏏cricket game|🏑field hockey|🏒ice hockey|🥍lacrosse|🏓ping pong|🏸badminton|🥊boxing glove|🥋martial arts uniform|🥅goal net|⛳flag in hole|⛸ice skate|🎣fishing pole|🤿diving mask|🎽running shirt|🎿skis|🛷sled|🥌curling stone|🎯bullseye|🪀yo-yo|🪁kite|🔫water pistol|🎱pool 8 ball|🔮crystal ball|🪄magic wand|🎮video game|🕹joystick|🎰slot machine|🎲game die|🧩puzzle piece|🧸teddy bear|🪅piñata|🪩mirror ball|🪆nesting dolls|♠spade suit|♦diamond suit|♣club suit|♟chess pawn|🃏joker|🀄mahjong red dragon|🎴flower playing cards|🎭performing arts|🖼framed picture|🎨artist palette|🧵thread|🪡sewing needle|🧶yarn|🪢knot",
+ "Objects": "👓glasses|🕶sunglasses|🥽goggles|🥼lab coat|🦺safety vest|👔necktie|👕t-shirt|👖jeans|🧣scarf|🧤gloves|🧥coat|🧦socks|👗dress|👘kimono|🥻sari|🩱one-piece swimsuit|🩲briefs|🩳shorts|👙bikini|👚woman’s clothes|🪭folding hand fan|👛purse|👜handbag|👝clutch bag|🛍shopping bags|🎒backpack|🩴thong sandal|👞man’s shoe|👟running shoe|🥾hiking boot|🥿flat shoe|👠high-heeled shoe|👡woman’s sandal|🩰ballet shoes|👢woman’s boot|🪮hair pick|👑crown|👒woman’s hat|🎩top hat|🎓graduation cap|🧢billed cap|🪖military helmet|⛑rescue worker’s helmet|📿prayer beads|💄lipstick|💍ring|💎gem stone|🔇muted speaker|🔈speaker low volume|🔉speaker medium volume|🔊speaker high volume|📢loudspeaker|📣megaphone|📯postal horn|🔔bell|🔕bell with slash|🎼musical score|🎵musical note|🎶musical notes|🎙studio microphone|🎚level slider|🎛control knobs|🎤microphone|🎧headphone|📻radio|🎷saxophone|🎺trumpet|🪗accordion|🎸guitar|🎹musical keyboard|🎻violin|🪕banjo|🥁drum|🪘long drum|🪇maracas|🪈flute|📱mobile phone|📲mobile phone with arrow|☎telephone|📞telephone receiver|📟pager|📠fax machine|🔋battery|🪫low battery|🔌electric plug|💻laptop|🖥desktop computer|🖨printer|⌨keyboard|🖱computer mouse|🖲trackball|💽computer disk|💾floppy disk|💿optical disk|📀dvd|🧮abacus|🎥movie camera|🎞film frames|📽film projector|🎬clapper board|📺television|📷camera|📸camera with flash|📹video camera|📼videocassette|🔍magnifying glass tilted left|🔎magnifying glass tilted right|🕯candle|💡light bulb|🔦flashlight|🏮red paper lantern|🪔diya lamp|📔notebook with decorative cover|📕closed book|📖open book|📗green book|📘blue book|📙orange book|📚books|📓notebook|📒ledger|📃page with curl|📜scroll|📄page facing up|📰newspaper|🗞rolled-up newspaper|📑bookmark tabs|🔖bookmark|🏷label|🪙coin|💰money bag|💴yen banknote|💵dollar banknote|💶euro banknote|💷pound banknote|💸money with wings|💳credit card|🧾receipt|💹chart increasing with yen|✉envelope|📧e-mail|📨incoming envelope|📩envelope with arrow|📤outbox tray|📥inbox tray|📦package|📫closed mailbox with raised flag|📪closed mailbox with lowered flag|📬open mailbox with raised flag|📭open mailbox with lowered flag|📮postbox|🗳ballot box with ballot|✏pencil|✒black nib|🖋fountain pen|🖊pen|🖌paintbrush|🖍crayon|📝memo|💼briefcase|📁file folder|📂open file folder|🗂card index dividers|📅calendar|📆tear-off calendar|🗒spiral notepad|🗓spiral calendar|📇card index|📈chart increasing|📉chart decreasing|📊bar chart|📋clipboard|📌pushpin|📍round pushpin|📎paperclip|🖇linked paperclips|📏straight ruler|📐triangular ruler|✂scissors|🗃card file box|🗄file cabinet|🗑wastebasket|🔒locked|🔓unlocked|🔏locked with pen|🔐locked with key|🔑key|🗝old key|🔨hammer|🪓axe|⛏pick|⚒hammer and pick|🛠hammer and wrench|🗡dagger|⚔crossed swords|💣bomb|🪃boomerang|🏹bow and arrow|🛡shield|🪚carpentry saw|🔧wrench|🪛screwdriver|🔩nut and bolt|⚙gear|🗜clamp|⚖balance scale|🦯white cane|🔗link|⛓chains|🪝hook|🧰toolbox|🧲magnet|🪜ladder|⚗alembic|🧪test tube|🧫petri dish|🧬dna|🔬microscope|🔭telescope|📡satellite antenna|💉syringe|🩸drop of blood|💊pill|🩹adhesive bandage|🩼crutch|🩺stethoscope|🩻x-ray|🚪door|🛗elevator|🪞mirror|🪟window|🛏bed|🛋couch and lamp|🪑chair|🚽toilet|🪠plunger|🚿shower|🛁bathtub|🪤mouse trap|🪒razor|🧴lotion bottle|🧷safety pin|🧹broom|🧺basket|🧻roll of paper|🪣bucket|🧼soap|🫧bubbles|🪥toothbrush|🧽sponge|🧯fire extinguisher|🛒shopping cart|🚬cigarette|⚰coffin|🪦headstone|⚱funeral urn|🧿nazar amulet|🪬hamsa|🗿moai|🪧placard|🪪identification card",
+ "Symbols": "🏧ATM sign|🚮litter in bin sign|🚰potable water|♿wheelchair symbol|🚹men’s room|🚺women’s room|🚻restroom|🚼baby symbol|🚾water closet|🛂passport control|🛃customs|🛄baggage claim|🛅left luggage|⚠warning|🚸children crossing|⛔no entry|🚫prohibited|🚳no bicycles|🚭no smoking|🚯no littering|🚱non-potable water|🚷no pedestrians|📵no mobile phones|🔞no one under eighteen|☢radioactive|☣biohazard|⬆up arrow|➡right arrow|⬇down arrow|⬅left arrow|⤴right arrow curving up|⤵right arrow curving down|🔃clockwise vertical arrows|🔄counterclockwise arrows button|🔙BACK arrow|🔚END arrow|🔛ON! arrow|🔜SOON arrow|🔝TOP arrow|🛐place of worship|⚛atom symbol|🕉om|✡star of David|☸wheel of dharma|☯yin yang|✝latin cross|☦orthodox cross|☪star and crescent|☮peace symbol|🕎menorah|🔯dotted six-pointed star|🪯khanda|♈Aries|♉Taurus|♊Gemini|♋Cancer|♌Leo|♍Virgo|♎Libra|♏Scorpio|♐Sagittarius|♑Capricorn|♒Aquarius|♓Pisces|⛎Ophiuchus|🔀shuffle tracks button|🔁repeat button|🔂repeat single button|▶play button|⏩fast-forward button|⏭next track button|⏯play or pause button|◀reverse button|⏪fast reverse button|⏮last track button|🔼upwards button|⏫fast up button|🔽downwards button|⏬fast down button|⏸pause button|⏹stop button|⏺record button|⏏eject button|🎦cinema|🔅dim button|🔆bright button|📶antenna bars|🛜wireless|📳vibration mode|📴mobile phone off|♀female sign|♂male sign|⚧transgender symbol|✖multiply|➕plus|➖minus|➗divide|🟰heavy equals sign|♾infinity|❓red question mark|❔white question mark|❕white exclamation mark|❗red exclamation mark|〰wavy dash|💱currency exchange|💲heavy dollar sign|⚕medical symbol|♻recycling symbol|⚜fleur-de-lis|🔱trident emblem|📛name badge|🔰Japanese symbol for beginner|⭕hollow red circle|✅check mark button|☑check box with check|✔check mark|❌cross mark|❎cross mark button|➰curly loop|➿double curly loop|〽part alternation mark|✳eight-spoked asterisk|✴eight-pointed star|❇sparkle|🔟keycap: 10|🔠input latin uppercase|🔡input latin lowercase|🔢input numbers|🔣input symbols|🔤input latin letters|🅰A button (blood type)|🆎AB button (blood type)|🅱B button (blood type)|🆑CL button|🆒COOL button|🆓FREE button|🆔ID button|Ⓜcircled M|🆕NEW button|🆖NG button|🅾O button (blood type)|🆗OK button|🅿P button|🆘SOS button|🆙UP! button|🆚VS button|🈁Japanese “here” button|🈂Japanese “service charge” button|🈷Japanese “monthly amount” button|🈶Japanese “not free of charge” button|🈯Japanese “reserved” button|🉐Japanese “bargain” button|🈹Japanese “discount” button|🈚Japanese “free of charge” button|🈲Japanese “prohibited” button|🉑Japanese “acceptable” button|🈸Japanese “application” button|🈴Japanese “passing grade” button|🈳Japanese “vacancy” button|㊗Japanese “congratulations” button|㊙Japanese “secret” button|🈺Japanese “open for business” button|🈵Japanese “no vacancy” button|🔴red circle|🟠orange circle|🟡yellow circle|🟢green circle|🔵blue circle|🟣purple circle|🟤brown circle|⚫black circle|⚪white circle|🟥red square|🟧orange square|🟨yellow square|🟩green square|🟦blue square|🟪purple square|🟫brown square|⬛black large square|⬜white large square|◼black medium square|◻white medium square|◾black medium-small square|◽white medium-small square|▪black small square|▫white small square|🔶large orange diamond|🔷large blue diamond|🔸small orange diamond|🔹small blue diamond|🔺red triangle pointed up|🔻red triangle pointed down|💠diamond with a dot|🔘radio button|🔳white square button|🔲black square button"
+};
+// contours ([x, y], y up) -> clipper paths centred, unit height U
+function unitIcon(contours, evenodd) {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const c of contours) for (const [x, y] of c) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
   const h = (y1 - y0) || 1, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   const U = 1e4; // fixed resolution for unit icon
   let paths = contours.map(c => c.map(([x, y]) => ({ X: Math.round((x - cx) / h * U), Y: Math.round((y - cy) / h * U) })));
-  const ft = evenodd ? C.PolyFillType.pftEvenOdd : C.PolyFillType.pftNonZero;
-  paths = union(paths, ft);
+  paths = union(paths, evenodd ? C.PolyFillType.pftEvenOdd : C.PolyFillType.pftNonZero);
   return { paths, U, aspect: (x1 - x0) / h };
 }
 const iconCache = new Map();
@@ -642,6 +722,13 @@ function findIcon(tok) {
 }
 async function loadIcon(entry) {
   if (iconCache.has(entry[0])) return iconCache.get(entry[0]);
+  if (entry[3] === 'Emoji') {
+    const font = await loadEmojiFont(), g = font.charToGlyph(entry[1]);
+    const contours = g.index ? flattenPath(g.getPath(0, 0, 100), 8).map(c => c.map(([x, y]) => [x, -y])) : [];
+    const ic = contours.length ? unitIcon(contours, false) : null;
+    iconCache.set(entry[0], ic);
+    return ic;
+  }
   const res = await fetch(entry[2]);
   if (!res.ok) throw new Error(`Could not load icon ${entry[1]} (HTTP ${res.status})`);
   const ic = parseSvgIcon(await res.text());
@@ -776,12 +863,8 @@ function readParams() {
     p[k] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Math.round(clampNum(el, OTHER_DEFAULTS[k])) : el.value;
   }
   p.showPlate = true; p.allowRot = false;
-  // letters turned a quarter turn on a cord that runs top to bottom: the bead is the same as "Top to bottom", only the letters turn
-  p.turnLetters = p.holeAxis === 'yr'; if (p.turnLetters) p.holeAxis = 'y';
   return p;
 }
-// the settings as the controls hold them: "letters turned" is stored as its own Direction choice
-function savedParams() { const p = readParams(); if (p.turnLetters) p.holeAxis = 'yr'; delete p.turnLetters; return p; }
 function writeParams(p) {
   for (const [id, , , , , def] of NUM) { const v = p[id] ?? def; $(id).value = v; $(id + 'R').value = v; }
   for (const [k, def] of Object.entries(OTHER_DEFAULTS)) {
@@ -997,7 +1080,7 @@ function starParts(W) {
   });
 }
 // more extra bead shapes: kind -> label. Typed as [flower-bead], [soccer-bead], …
-const SHAPES = { flower: 'Flower', cloud: 'Cloud', butterfly: 'Butterfly', gem: 'Gem', paw: 'Paw', crown: 'Crown', football: 'Football', basketball: 'Basketball', soccer: 'Soccer ball',
+const SHAPES = { flower: 'Flower', cloud: 'Cloud', butterfly: 'Butterfly', gem: 'Gem', paw: 'Paw', crown: 'Crown', football: 'Football', basketball: 'Basketball', soccer: 'Soccer ball', baseball: 'Baseball',
   smiley: 'Smiley', duck: 'Duck', roundbow: 'Round bow', emerald: 'Emerald',
   bear: 'Bear', cat: 'Cat', bunny: 'Bunny', ladybug: 'Ladybug', cupcake: 'Cupcake', fire: 'Fire', bulldog: 'Bulldog' };
 const holeSpan = p => p.holeAxis === 'none' ? 0 : p.holeShape === 'slot' ? Math.max(p.holeW, p.holeD) : p.holeD;
@@ -1079,7 +1162,7 @@ function decorParts(kind, p) {
       return [part(c(-0.11, 0.08, 0.27), c(0.11, 0.08, 0.27)), part(c(-0.22, -0.1, 0.16), c(0.22, -0.1, 0.16)),
         part(c(-0.25, -0.12, 0.1), c(0.25, -0.12, 0.1), c(-0.22, -0.27, 0.1), c(0.22, -0.27, 0.1)),
         ...[-1, 1].map(s => part(c(s * 0.42, 0.31, 0.05), c(s * 0.41, 0.2, 0.05), c(s * 0.22, 0.36, 0.04), c(s * 0.32, 0.22, 0.05)))];
-    default: return [circle(0, 0, W / 2, Math.max(96, Math.round(W * 3)))]; // basketball, soccer, smiley
+    default: return [circle(0, 0, W / 2, Math.max(96, Math.round(W * 3)))]; // basketball, soccer, baseball, smiley
   }
 }
 // markings on an extra bead as clipper paths (cut, inlaid or raised like a letter), solid or as outlines; null for a plain shape (puck, cloud) or with markings off
@@ -1167,6 +1250,12 @@ function decorDetail(kind, p, bc) {
     case 'basketball': {
       const arc = s => Array.from({ length: 25 }, (_, i) => { const a = (120 + i * 5) * Math.PI / 180; return [s * (0.7 + 0.5 * Math.cos(a)), 0.5 * Math.sin(a)]; });
       d = [line([-0.5, 0], [0.5, 0]), line([0, -0.5], [0, 0.5]), line(...arc(1)), line(...arc(-1))]; break;
+    }
+    case 'baseball': { // two seams curving in from the rim, with slanted stitches across each, pointing opposite ways on the two sides
+      const at = (s, r, deg) => { const a = deg * Math.PI / 180; return [s * (0.68 + r * Math.cos(a)), r * Math.sin(a)]; };
+      d = [-1, 1].flatMap(s => [line(...Array.from({ length: 31 }, (_, i) => at(s, 0.44, 120 + i * 120 / 30))),
+        ...Array.from({ length: 9 }, (_, i) => 140 + i * 10).map(a => line(at(s, 0.385, a - 5 * s), at(s, 0.495, a + 5 * s)))]);
+      break;
     }
     case 'soccer': { // centre pentagon, five seams, five pentagons cut off by the rim; sized to the flat face
       const ib = bounds(bc.inner), R = (ib.x1 - ib.x0) / 2 / W;
@@ -1451,9 +1540,9 @@ const fmtMod = col => !(col?.body || col?.letter || col?.size) ? ''
 function tokenize(name, p) {
   let out = [];
   const warn = [];
-  let gap = '', line = 0;
+  let gap = '', line = 0, joined = false;
   // each line of the name is its own cord; the newline is kept in the gap before the next bead so edits keep it
-  const add = tk => { tk.src = tk.src ?? ''; tk.mod = ''; tk.gap = gap; tk.line = line; gap = ''; out.push(tk); };
+  const add = tk => { joined = false; tk.src = tk.src ?? ''; tk.mod = ''; tk.gap = gap; tk.line = line; gap = ''; out.push(tk); };
   const re = /\[([^\]]*)\]|(\s)|(\{[#0-9a-fA-F,%]*\})|(.)/gsu;
   for (const m of name.matchAll(re)) {
     if (m[3] !== undefined) { // colour modifier: belongs to the bead right before it
@@ -1474,7 +1563,9 @@ function tokenize(name, p) {
     else if (m[2]) { if (p.blankSpace) add({ type: 'blank', label: 'Blank', src: m[0] }); else gap += m[0]; }
     else if (/[\u2665\u2764]/.test(m[4])) add({ type: 'decor', value: 'heartbead', label: 'Heart bead', src: m[0] });
     else if (/[\u2605\u2606]/.test(m[4])) add({ type: 'decor', value: 'starbead', label: 'Star bead', src: m[0] });
-    else if (/[\uFE0E\uFE0F\u200D]/.test(m[4])) { if (out.length && !gap) out[out.length - 1].src += m[0]; else gap += m[0]; } // emoji variation selectors and joiners are not beads
+    // emoji variation selectors, joiners and skin tones are not beads; an emoji joined on with a joiner (👨‍👩‍👧) stays part of the bead before it, which shows the first emoji
+    else if (/[\uFE0E\uFE0F\u200D\u{1F3FB}-\u{1F3FF}]/u.test(m[4])) { if (out.length && !gap) out[out.length - 1].src += m[0]; else gap += m[0]; joined = m[4] === '\u200D' && out.length && !gap; }
+    else if (isEmoji(m[4])) { if (joined) out[out.length - 1].src += m[0]; else add({ type: 'icon', value: ['emoji:' + m[4], m[4], null, 'Emoji'], label: 'Emoji ' + m[4], src: m[0] }); joined = false; }
     else { const ch = p.upper ? m[4].toUpperCase() : m[4]; add({ type: 'char', value: ch, label: ch, src: m[0] }); }
   }
   let k = 0;
@@ -1701,6 +1792,122 @@ $('shotDlg').onclick = ev => { // click outside the window
 for (const d of document.querySelectorAll('dialog')) d.addEventListener('keydown', ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); d.close(); } }); // stop: Esc closes the window, not the bead editor behind it
 const openHelp = () => { $('helpDlg').showModal(); $('helpDlg').scrollTop = 0; }; // focus lands on Close at the bottom: start at the top
 $('helpBtn').onclick = openHelp;
+
+/* ---------------- quick setup: one question per step, starting from the current settings ---------------- */
+const SPACER_PCT = ['heartPct', 'decorPct', 'starPct', 'extraPct'], SPACER_MM = ['puckD', 'barrelD', 'barrelL', 'cubeD', 'cubeT'];
+const WIZ = [
+  { key: 'size', q: 'How big should the letter beads be?', opts: [
+    ['35', '35 mm', 'Small: bracelets and zips'], ['45', '45 mm', ''], ['50', '50 mm', ''], ['55', '55 mm', 'The usual bag charm size'], ['75', '75 mm', 'Large'], ['100', '100 mm', 'Extra large']] },
+  { key: 'spacer', q: 'How big should the spacer beads be, next to the letter beads?', opts: [
+    ['0.75', 'Small', 'About three quarters of the standard size'], ['1', 'Standard', 'The sizes StrungCharms starts with'], ['1.25', 'Large', 'A quarter bigger than standard']] },
+  { key: 'cord', q: 'What will you thread the beads on?', opts: [
+    ['paracord', 'Single paracord', 'One 550 paracord (4 mm), round hole'], ['paracord2', 'Double paracord', 'Two 550 paracords side by side, slot hole']] },
+  { key: 'sides', q: 'Letters on one side or both?', opts: [
+    ['1', 'Single-sided', 'Letter on the top face only'], ['2', 'Double-sided', 'Letter on the top and bottom faces, so it reads from both sides (inlay or engraved letters)']] },
+  { key: 'dir', q: 'Which way does the name run?', opts: [
+    ['x', 'Horizontal', 'The cord runs side to side and the name reads across'], ['y', 'Vertical', 'The cord runs top to bottom and the name hangs down, letters upright']] },
+];
+let wizAns = {}, wizAt = 0;
+function wizCurrent() {
+  const p = readParams(), f = p.extraPct / defaultOf('extraPct');
+  const near = (v, list) => list.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a);
+  return { size: String(near(p.diameter, [35, 45, 50, 55, 75, 100])), spacer: String(near(f, [0.75, 1, 1.25])),
+    cord: p.holeShape === 'slot' ? 'paracord2' : 'paracord', sides: p.backLetter && p.letterMode !== 'raised' ? '2' : '1', dir: p.holeAxis === 'none' ? 'x' : p.holeAxis };
+}
+function wizShow() {
+  const st = WIZ[wizAt];
+  $('wizStep').textContent = `Step ${wizAt + 1} of ${WIZ.length}`;
+  $('wizQ').innerHTML = `<legend>${st.q}</legend>` + st.opts.map(([v, t, d]) =>
+    `<label class="opt"><input type="radio" name="wiz" value="${v}"${wizAns[st.key] === v ? ' checked' : ''}><span>${t}${d ? `<small>${d}</small>` : ''}</span></label>`).join('');
+  $('wizBack').disabled = wizAt === 0;
+  $('wizNext').textContent = wizAt === WIZ.length - 1 ? 'Apply' : 'Next';
+  ($('wizQ').querySelector('input:checked') || $('wizQ').querySelector('input')).focus();
+  wizDraw();
+}
+// a flat sketch of two letter beads and a heart spacer with the answers so far (the one being picked included), drawn to scale,
+// plus a cut across the cord showing the hole and which faces carry the letter
+function wizDraw() {
+  const cv = $('wizCv'), W = 320, H = 380, dpr = devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const p = readParams(), a = { ...wizAns }, chk = $('wizQ').querySelector('input:checked');
+  if (chk) a[WIZ[wizAt].key] = chk.value;
+  const D = +a.size, cord = CORDS[a.cord], slot = cord.shape === 'slot', two = a.sides === '2', vert = a.dir === 'y';
+  const sp = D * defaultOf('heartPct') / 100 * +a.spacer, k = 0.9, gap = 4; // px per mm: the largest answers still fit
+  const css = getComputedStyle(document.body), muted = css.getPropertyValue('--muted').trim() || '#999';
+  const shade = c => { const n = parseInt(c.slice(1), 16), m = v => Math.round(v * 0.6); return `rgb(${m(n >> 16)},${m(n >> 8 & 255)},${m(n & 255)})`; };
+  const chars = [...(p.upper ? p.name.toUpperCase() : p.name).replace(/\[[^\]]*\]|\{[^}]*\}/g, '')].filter(ch => /\S/.test(ch));
+  const L = [chars[0] || 'A', chars[1] || 'B'];
+  const shapePath = (cx, cy, r) => {
+    g.beginPath();
+    if (p.shape === 'square' || p.shape === 'cube') g.roundRect(cx - r, cy - r, 2 * r, 2 * r, Math.min(r, p.cornerR * k));
+    else if (p.shape === 'hexagon' || p.shape === 'octagon') { const n = p.shape === 'hexagon' ? 6 : 8;
+      for (let i = 0; i < n; i++) { const t = Math.PI * 2 * i / n + Math.PI / n, R = r / Math.cos(Math.PI / n); g.lineTo(cx + R * Math.cos(t), cy + R * Math.sin(t)); } g.closePath(); }
+    else if (p.shape === 'heart') heartPath(cx, cy, r);
+    else g.arc(cx, cy, r, 0, Math.PI * 2);
+  };
+  const heartPath = (cx, cy, r) => { g.beginPath(); g.moveTo(cx, cy + r);
+    g.bezierCurveTo(cx - 1.3 * r, cy + 0.1 * r, cx - 1.1 * r, cy - 1.1 * r, cx, cy - 0.45 * r);
+    g.bezierCurveTo(cx + 1.1 * r, cy - 1.1 * r, cx + 1.3 * r, cy + 0.1 * r, cx, cy + r); g.closePath(); };
+  // the strand, centred in the top 250 px
+  const sizes = [D, sp, D], len = D * 2 + sp + gap * 2, ox = W / 2, oy = 145;
+  const at = s => vert ? [ox, oy + s * k] : [ox + s * k, oy];
+  g.strokeStyle = p.accentColor; g.lineWidth = 4 * k; g.lineCap = 'round';
+  for (const o of slot ? [-(cord.w - cord.d) / 2, (cord.w - cord.d) / 2] : [0]) {
+    const [x0, y0] = at(-len / 2 - 14), [x1, y1] = at(len / 2 + 14), dx = vert ? o * k : 0, dy = vert ? 0 : o * k;
+    g.beginPath(); g.moveTo(x0 + dx, y0 + dy); g.lineTo(x1 + dx, y1 + dy); g.stroke();
+  }
+  let s0 = -len / 2;
+  sizes.forEach((d, i) => {
+    const [cx, cy] = at(s0 + d / 2), r = d * k / 2; s0 += d + gap;
+    if (i === 1) { heartPath(cx, cy, r); g.fillStyle = p.accentColor; g.fill(); g.strokeStyle = shade(p.accentColor); g.lineWidth = 1; g.stroke(); return; }
+    shapePath(cx, cy, r); g.fillStyle = p.beadColor; g.fill(); g.strokeStyle = shade(p.beadColor); g.lineWidth = 1; g.stroke();
+    g.fillStyle = p.letterColor; g.font = `bold ${Math.round(d * k * p.letterPct / 100 * 1.25)}px "${p.font}", sans-serif`;
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(L[i / 2], cx, cy + d * k * 0.04);
+  });
+  // cut across the cord: bead width and thickness, the letter layer on one or both faces, the hole with the cord in it
+  const q = { ...p, holeD: cord.d, holeW: cord.w || p.holeW, holeShape: cord.shape || 'round', backLetter: two, holeAxis: a.dir };
+  const T = Math.max(p.thick, Math.ceil(minThick(q) * 2) / 2), c = 150 / D, bx = W / 2, by = 338, bw = D * c, bt = T * c;
+  g.fillStyle = p.beadColor; g.beginPath(); g.roundRect(bx - bw / 2, by - bt / 2, bw, bt, Math.min(bt / 2, 3)); g.fill();
+  const lw = bw * 0.55, lt = Math.max(3, p.depth * c), lm = p.letterMode === 'raised' && !two;
+  g.fillStyle = p.letterColor;
+  g.fillRect(bx - lw / 2, lm ? by - bt / 2 - lt : by - bt / 2, lw, lt);
+  if (two) g.fillRect(bx - lw / 2, by + bt / 2 - lt, lw, lt);
+  const hw = (slot ? cord.w : cord.d) * c, hh = cord.d * c;
+  g.fillStyle = css.getPropertyValue('--bg').trim() || '#111'; g.beginPath(); g.roundRect(bx - hw / 2, by - hh / 2, hw, hh, hh / 2); g.fill();
+  g.fillStyle = p.accentColor;
+  for (const o of slot ? [-(cord.w - cord.d) / 2, (cord.w - cord.d) / 2] : [0]) { g.beginPath(); g.arc(bx + o * c, by, 2 * c, 0, Math.PI * 2); g.fill(); }
+  g.strokeStyle = muted; g.globalAlpha = 0.4; g.lineWidth = 1; g.beginPath(); g.moveTo(16, 290); g.lineTo(W - 16, 290); g.stroke(); g.globalAlpha = 1;
+  $('wizCap').textContent = `To scale: letter beads ${D} mm, heart spacer about ${Math.round(sp)} mm. Below, a cut across the cord: ${T} mm thick, ${slot ? 'two cords side by side' : 'one cord'}, letter on ${two ? 'both faces' : 'the top face'}.`;
+}
+function wizApply() {
+  if (histTimer) snap(); // keep a pending edit so undo returns to it
+  const a = wizAns, setNum = (id, v) => { $(id).value = v; $(id + 'R').value = v; };
+  $('sizePreset').value = a.size; onChange('sizePreset');
+  const f = parseFloat(a.spacer), k = parseFloat(a.size) / 55; // spacer bead sizes in mm follow the letter bead size
+  for (const id of SPACER_PCT) setNum(id, Math.round(defaultOf(id) * f * 2) / 2);
+  for (const id of SPACER_MM) setNum(id, Math.round(defaultOf(id) * f * k * 2) / 2);
+  $('cord').value = a.cord; onChange('cord');
+  $('backLetter').checked = a.sides === '2';
+  if (a.sides === '2' && $('letterMode').value === 'raised') $('letterMode').value = 'inlay'; // raised letters cannot go on the bed side
+  $('holeAxis').value = a.dir;
+  say = 'Setup wizard applied. Undo (Ctrl+Z) brings the previous settings back.';
+  onChange(); snap();
+}
+function openWizard(auto = false) { wizAns = wizCurrent(); wizAt = 0; $('wizAuto').hidden = $('wizNever').hidden = !auto; $('wizDlg').showModal(); wizShow(); }
+$('wizNever').onclick = () => { try { localStorage.setItem('strung.wizOff', '1'); } catch {} $('wizDlg').close(); status('The wizard will not open by itself again. The Setup wizard button at the top opens it.'); };
+$('wizBtn').onclick = () => openWizard();
+$('firstHintWiz').onclick = () => openWizard();
+$('wizCancel').onclick = () => $('wizDlg').close();
+$('wizQ').addEventListener('change', wizDraw);
+$('wizBack').onclick = () => { if (wizAt > 0) { wizAt--; wizShow(); } };
+$('wizForm').onsubmit = e => {
+  e.preventDefault();
+  const v = $('wizQ').querySelector('input:checked')?.value; if (!v) return;
+  wizAns[WIZ[wizAt].key] = v;
+  if (wizAt < WIZ.length - 1) { wizAt++; wizShow(); } else { $('wizDlg').close(); wizApply(); }
+};
+$('wizQ').addEventListener('dblclick', e => { if (e.target.closest('.opt')) $('wizForm').requestSubmit(); });
 $('helpClose').onclick = () => $('helpDlg').close();
 $('helpDlg').onclick = ev => { // click outside the window
   const r = $('helpDlg').getBoundingClientRect();
@@ -1851,7 +2058,7 @@ function thumbSvg(tok, p) {
   }
   const side = Math.max(b.x1 - b.x0, b.y1 - b.y0) * 1.08, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
   return `<svg viewBox="${(cx - side / 2).toFixed(2)} ${(-cy - side / 2).toFixed(2)} ${side.toFixed(2)} ${side.toFixed(2)}" aria-hidden="true"><g transform="scale(1,-1)">`
-    + `<path d="${pathD(outline)}" fill="var(${blank ? '--c-bead' : '--c-accent'})" stroke="#0008" stroke-width="${(side / 60).toFixed(2)}"/>`
+    + `<path d="${pathD(outline)}" fill="var(${blank ? '--c-bead' : '--c-new'})" stroke="#0008" stroke-width="${(side / 60).toFixed(2)}"/>`
     + (detail?.length ? `<path d="${pathD(detail)}" fill="var(--c-letter)"/>` : '') + '</g></svg>';
 }
 let thumbKey = '', newColTouched = false;
@@ -1859,6 +2066,7 @@ function updateThumbs(p) {
   const rs = document.documentElement.style;
   rs.setProperty('--c-bead', p.beadColor); rs.setProperty('--c-letter', p.letterColor); rs.setProperty('--c-accent', p.accentColor);
   if (!newColTouched) $('newSpacerCol').value = p.accentColor;
+  rs.setProperty('--c-new', $('newSpacerCol').value); // picker beads show the colour they will be added in
   const key = JSON.stringify([p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.edgeSize, p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.holeAxis, p.holeShape, p.holeD, p.holeW]);
   if (key === thumbKey) return;
   thumbKey = key;
@@ -1887,7 +2095,7 @@ function dropSlot(ev) {
 // spacer beads added from the picker get the "Colour for new beads"; it follows the Colours tab until it is changed here
 const newSpacerTok = tok => { const c = $('newSpacerCol').value.toLowerCase(); return c === $('accentColor').value.toLowerCase() ? tok : tok + fmtMod({ body: c }); };
 
-$('newSpacerCol').addEventListener('input', () => { newColTouched = true; });
+for (const ev of ['input', 'change']) $('newSpacerCol').addEventListener(ev, () => { newColTouched = true; document.documentElement.style.setProperty('--c-new', $('newSpacerCol').value); });
 $('spacerColAll').onclick = () => {
   const real = realTokens(), c = $('newSpacerCol').value.toLowerCase(), own = c !== $('accentColor').value.toLowerCase();
   if (!real.some(t => t.type === 'decor')) { status('There are no spacer beads on the cords yet.'); return; }
@@ -2087,14 +2295,16 @@ function bedExclude(p) {
 
 // letter beads and extra beads (puck/heart/bow) go on separate plates when they print in a different colour
 const isExtra = it => it.accent.idx.length > 0;
-function splitOn(p) {
-  return !!p.splitPlates && (p.beadExt !== p.accentExt || String(p.beadColor).toLowerCase() !== String(p.accentColor).toLowerCase());
-}
-// groups of item indices, each starting on a fresh plate
+// groups of item indices, each starting on a fresh plate. The colours compared are the ones each bead really prints in,
+// so spacer beads with their own colour (A{#ff0000}) split off too, even when the spacer colour matches the bead colour
 function plateGroups(items, p) {
   const all = items.map((_, i) => i);
-  if (!splitOn(p)) return [all];
-  return [all.filter(i => !isExtra(items[i])), all.filter(i => isExtra(items[i]))].filter(g => g.length);
+  if (!p.splitPlates) return [all];
+  const letters = all.filter(i => !isExtra(items[i])), extras = all.filter(i => isExtra(items[i]));
+  const ext = i => partExt(items[i], baseKey(items[i]), p) + '|' + (ownColor(items[i], baseKey(items[i])) || (isExtra(items[i]) ? p.accentColor : p.beadColor)).toLowerCase();
+  const lc = new Set(letters.map(ext));
+  if (!letters.length || !extras.length || extras.every(i => lc.size === 1 && lc.has(ext(i)))) return [all];
+  return [letters, extras];
 }
 // Bambu Studio lays plates out in a grid: ceil(sqrt(n)) columns, 20 % gap, rows going -Y
 function plateOrigin(s, n, plate) {
@@ -2418,22 +2628,37 @@ const status = (t, err = false) => { const el = $('status'); el.textContent = t;
 const beadCache = new Map(); // geometry key + token -> item
 async function getFont(p) { return p.font === '__custom' && customFont ? customFont : loadFont(p.font); }
 
-async function buildItems(p) {
+// shows the progress bar (n of total) or hides it (no arguments)
+function progress(text, n, total) {
+  const el = $('progress');
+  if (text == null) { el.hidden = true; return; }
+  el.hidden = false; $('progressText').textContent = text;
+  $('progressBar').style.width = (total ? 100 * n / total : 0) + '%';
+}
+const nextFrame = () => new Promise(r => setTimeout(r, 0));
+// token: the build this belongs to; a newer build makes this one stop early (returns null)
+async function buildItems(p, token) {
   const font = await getFont(p);
   const { tokens, warn, trailing } = tokenize(p.name, p);
   const gkey = JSON.stringify([p.font, p.diameter, p.thick, p.shape, p.cornerR, p.edgeStyle, p.bottomEdge, faceDown(p), p.edgeSize, p.holeAxis, p.holeShape, p.holeD, p.holeW, p.teardrop,
-    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg, p.turnLetters]);
+    p.puckD, p.barrelD, p.barrelL, p.cubeD, p.cubeT, p.heartPct, p.decorPct, p.starPct, p.extraPct, p.bowRotate, p.gemRotate, p.decorArt, p.letterPct, p.fitPct, p.depth, p.raise, p.textBold, p.letterY, p.letterMode, p.backLetter, p.curveSeg]);
   if (beadCache.gkey !== gkey) { beadCache.clear(); freeBodies(); beadCache.gkey = gkey; }
   const items = [];
   // characters the font has no shape for (emoji, other scripts) would print as an empty box: leave those beads blank and say so
   const lacks = ch => [...ch].some(c => !font.charToGlyphIndex(c)), missing = new Set();
   const base = p;
+  const keyOf = t => t.type + ':' + (t.type === 'icon' ? t.value[0] : t.value || '') + ((t.size || 100) === 100 ? '' : '@' + t.size);
+  // many new beads (a quick set, a pasted list) take seconds: show a progress bar and let the page draw it between beads
+  const todo = new Set(tokens.map(keyOf).filter(k => !beadCache.has(k))).size, slow = todo > 6;
+  let done = 0, lastYield = performance.now();
+  if (slow && tokens.some(t => t.type === 'icon' && t.value[3] === 'Emoji')) { progress('Loading the emoji font…', 0, todo); await nextFrame(); await loadEmojiFont(); }
+  try {
   for (const t of tokens) {
     // a resized bead: everything that sets its outline scales, the thickness and cord hole do not
     const k = (t.size || 100) / 100;
     p = k === 1 ? base : { ...base, diameter: base.diameter * k, puckD: base.puckD * k, barrelD: base.barrelD * k, barrelL: base.barrelL * k, cubeD: base.cubeD * k };
     const capH = p.diameter * p.letterPct / 100;
-    const key = t.type + ':' + (t.type === 'icon' ? t.value[0] : t.value || '') + (k === 1 ? '' : '@' + t.size);
+    const key = keyOf(t);
     if (t.type === 'char' && lacks(t.value)) missing.add(t.value);
     if (!beadCache.has(key) && t.type === 'decor') beadCache.set(key, buildDecor(t.value, p, t.label));
     if (!beadCache.has(key)) {
@@ -2442,17 +2667,24 @@ async function buildItems(p) {
         if (!missing.has(t.value)) paths = textToPaths(font, t.value, { sizeBy: 'cap', textHeight: capH, letterSpacing: 0, wordSpacing: 0, curveSeg: p.curveSeg, textBold: p.textBold });
       } else if (t.type === 'icon') {
         const ic = await loadIcon(t.value);
+        if (!ic) warn.push(`Noto Emoji has no shape for ${t.value[1]}: that bead is left blank. Pick one from the Emoji tab.`);
         if (ic) {
           const k = capH * 1.15 * S / ic.U;
           paths = offset(offset(ic.paths.map(pp => pp.map(q => ({ X: Math.round(q.X * k), Y: Math.round(q.Y * k) }))), 0.03), -0.03);
         }
       }
-      if (p.turnLetters && t.type === 'char') paths = paths.map(pp => pp.map(q => ({ X: q.Y, Y: -q.X }))); // a quarter turn clockwise: the name reads down the cord
       paths = fitGlyph(paths, p, beadBody(p));
       beadCache.set(key, buildBead(paths, p, t.label));
+      done++;
+      if (slow && performance.now() - lastYield > 60) {
+        progress(`Building beads: ${done} of ${todo}`, done, todo);
+        await nextFrame(); lastYield = performance.now();
+        if (token != null && token !== buildToken) return null;
+      }
     }
     items.push(t.col ? { ...beadCache.get(key), col: t.col } : beadCache.get(key)); // geometry is shared, colours are per bead
   }
+  } finally { if (slow) progress(); }
   p = base;
   if (missing.size) { const m = [...missing]; warn.push(`This font has no ${m.slice(0, 8).join(' ')}${m.length > 8 ? ' …' : ''}: ${m.length > 1 ? 'those beads are' : 'that bead is'} left blank. Pick another font under Letter, or use an icon bead instead.`); }
   assignSlots(items, p);
@@ -2490,7 +2722,7 @@ function onChange(id) {
 let hist = [], hi = -1, histTimer = null, restoring = false;
 function snap() {
   clearTimeout(histTimer); histTimer = null;
-  const s = JSON.stringify(savedParams());
+  const s = JSON.stringify(readParams());
   if (s === hist[hi]) return;
   hist = hist.slice(0, hi + 1); hist.push(s);
   if (hist.length > 200) hist.shift();
@@ -2554,7 +2786,7 @@ async function rebuild() {
   try { updateThumbs(p); } catch (e) { console.error(e); }
   let res;
   const t0 = performance.now();
-  try { status('Building…'); res = await buildItems(p); }
+  try { status('Building…'); res = await buildItems(p, token); }
   catch (e) { console.error(e); if (token === buildToken) status(`Could not build the beads: ${e.message}. ${/load (font|icon)/.test(e.message) ? 'Check your internet connection, or pick another one.' : 'Undo the last change (Ctrl+Z) and try another value.'}`, true); return; }
   if (token !== buildToken) return;
   const { items } = res;
@@ -2731,6 +2963,25 @@ document.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => {
   el.focus(); el.selectionStart = el.selectionEnd = s + t.length;
   onChange('name');
 });
+// the Emoji tab: one button per emoji, grouped; a click types it into the name where the cursor is
+$('emojiList').innerHTML = Object.entries(EMOJI).map(([g, list]) => `<section><h3>${g}</h3><div class="grid">${list.split('|').map(x => {
+  const e = [...x][0], n = x.slice(e.length);
+  return `<button type="button" data-emo="${e}" data-name="${n}" title="${n}" aria-label="${n}">${e}</button>`; }).join('')}</div></section>`).join('');
+$('emojiFind').addEventListener('input', () => {
+  const q = $('emojiFind').value.trim().toLowerCase();
+  for (const sec of $('emojiList').children) {
+    let any = false;
+    for (const b of sec.querySelectorAll('button')) { const on = !q || b.dataset.name.includes(q); b.hidden = !on; any ||= on; }
+    sec.hidden = !any;
+  }
+});
+$('emojiList').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-emo]'); if (!b) return;
+  const el = $('name'), s = el.selectionStart ?? el.value.length, e = el.selectionEnd ?? s, t = b.dataset.emo;
+  el.value = el.value.slice(0, s) + t + el.value.slice(e);
+  el.focus(); el.selectionStart = el.selectionEnd = s + t.length;
+  onChange('name');
+});
 // quick sets: replace the name with a stock set of beads (one undo step)
 const QUICK_SETS = {
   common: () => 'AAAAEEELLLLIIIOOORRRSSNNTTMMCH',
@@ -2738,6 +2989,12 @@ const QUICK_SETS = {
   spacers: () => [...document.querySelectorAll('[data-ins]')].map(b => b.dataset.ins).join(''),
   // one cord per group: letters, digits, then the spacer beads
   all: () => ['ABCDEFGHIJKLM', 'NOPQRSTUVWXYZ', '0123456789', QUICK_SETS.spacers()].join('\n'),
+  // 60 different smileys and people emoji at random from the Emoji tab, four cords of 15 (about 15 fit a plate) (all 1,356 at once would take minutes to build)
+  emoji: () => {
+    const all = [EMOJI['Smileys and Emotion'], EMOJI['People and Body']].flatMap(list => list.split('|').map(x => [...x][0]));
+    for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+    return [0, 15, 30, 45].map(k => all.slice(k, k + 15).join('')).join('\n');
+  },
 };
 document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => {
   snap(); // keep the old name as its own undo step
@@ -2746,7 +3003,7 @@ document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => {
   snap();
 });
 // name box grows with its lines (up to 6, then scrolls)
-function fitName() { const el = $('name'); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 6 * 21.6 + 18) + 'px'; }
+function fitName() { const el = $('name'); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 6 * 21.6 + 12) + 'px'; }
 $('name').addEventListener('input', fitName);
 $('nameClear').onclick = () => { const n = $('name'); n.value = ''; n.dispatchEvent(new Event('input')); n.focus(); };
 // common filament colours (roughly Bambu PLA Basic and Matte), shown as a grid by every colour picker
@@ -2810,7 +3067,7 @@ $('fontFile').onchange = async e => {
 
 /* ---------------- settings persistence ---------------- */
 const LS = 'strung.v1'; // storage keys keep the old project name, so saved settings carry over
-function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(savedParams())); } catch {} writeUrl(); }
+function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(readParams())); } catch {} writeUrl(); }
 // share link: every setting that differs from the defaults goes in the URL after #, e.g. #name=MIA%0ALEO&diameter=45
 function urlState(p) {
   const d = defaults(), q = new URLSearchParams();
@@ -2824,7 +3081,7 @@ function urlState(p) {
   return q.toString();
 }
 function writeUrl() {
-  const s = urlState(savedParams());
+  const s = urlState(readParams());
   try { history.replaceState(null, '', s ? '#' + s : location.pathname + location.search); } catch {}
 }
 function readUrl() {
@@ -2845,7 +3102,7 @@ $('copyLink').onclick = async () => {
   catch { status('Copy the address bar: it holds this name and these settings.'); }
 };
 function loadLocal() { try { return JSON.parse(localStorage.getItem(LS)); } catch { return null; } }
-$('saveCfg').onclick = () => download(new Blob([JSON.stringify(savedParams(), null, 2)], { type: 'application/json' }), 'strungcharms-settings.json');
+$('saveCfg').onclick = () => download(new Blob([JSON.stringify(readParams(), null, 2)], { type: 'application/json' }), 'strungcharms-settings.json');
 $('loadCfgBtn').onclick = () => $('loadCfg').click();
 $('loadCfg').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2880,6 +3137,8 @@ resize();
 let manifoldErr = '';
 const manifoldReady = initManifold().catch(e => { console.error(e); M = null; status(manifoldErr = 'The 3D engine could not load. Check your internet connection, then reload the page. (' + e.message + ')', true); });
 rebuild();
+// the setup wizard opens on every visit until "Don't show again"
+{ let off = false; try { off = !!localStorage.getItem('strung.wizOff'); } catch {} if (!off) openWizard(true); }
 </script>
 </body>
 </html>
